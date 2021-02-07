@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using date_app.DTOs;
-using date_app.Models;
+using AppCore.DTOs;
+using AppCore.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AppCore.Interfaces;
 
 namespace date_app.Controllers
 {
@@ -48,7 +49,7 @@ namespace date_app.Controllers
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
-        {             
+        {
             var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
 
             if (userFromRepo == null)

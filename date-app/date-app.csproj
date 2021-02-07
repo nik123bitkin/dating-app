@@ -58,6 +58,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AppCore\AppCore.csproj" />
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <TypeScriptCompile Include="ClientApp\src\app\guards\prevent-unsaved-changes.guard.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\message.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\models\pagination.ts" />

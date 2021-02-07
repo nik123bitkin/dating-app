@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
-using date_app.Data;
-using date_app.DTOs;
-using date_app.Helpers;
-using date_app.Models;
+using AppCore.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AppCore.Interfaces;
+using AppCore.Entities;
+using AppCore.Helpers;
+using AppCore.HelperEntities;
 
 namespace date_app.Controllers
 {
@@ -18,12 +19,12 @@ namespace date_app.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IDatingRepository _repo;
+        private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
 
-        public UsersController(IDatingRepository repo, IMapper mapper)
+        public UsersController(IUserRepository userRepo, IMapper mapper)
         {
-            _repo = repo;
+            _userRepo = userRepo;
             _mapper = mapper;
         }
 
@@ -32,7 +33,7 @@ namespace date_app.Controllers
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var userFromRepo = await _repo.GetUser(currentUserId);
+            var userFromRepo = await _userRepo.GetUser(currentUserId);
 
             userParams.UserId = currentUserId;
 
@@ -41,7 +42,7 @@ namespace date_app.Controllers
                 userParams.Gender = userFromRepo.Gender == "male" ? "female" : "male";
             }
 
-            var users = await _repo.GetUsers(userParams);
+            var users = await _userRepo.GetUsers(userParams);
 
             var usersToReturn = _mapper.Map<IEnumerable<UserForListDto>>(users);
 
@@ -53,7 +54,7 @@ namespace date_app.Controllers
         [HttpGet("{id}", Name ="GetUser")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _repo.GetUser(id);
+            var user = await _userRepo.GetUser(id);
 
             var userToReturn = _mapper.Map<UserForDetailedDTO>(user);
 
@@ -68,11 +69,11 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _repo.GetUser(id);
+            var userFromRepo = await _userRepo.GetUser(id);
 
             _mapper.Map(userForUpdateDto, userFromRepo);
 
-            if(await _repo.SaveAll())
+            if(await _userRepo.SaveAll())
             {
                 return NoContent();
             }
@@ -88,14 +89,14 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var like = await _repo.GetLike(id, recipientId);
+            var like = await _userRepo.GetLike(id, recipientId);
 
             if(like != null)
             {
                 return BadRequest("You have already liked this user");
             }
 
-            if(await _repo.GetUser(recipientId) == null)
+            if(await _userRepo.GetUser(recipientId) == null)
             {
                 return NotFound();
             }
@@ -106,9 +107,9 @@ namespace date_app.Controllers
                 LikeeId = recipientId
             };
 
-            _repo.Add<Like>(like);
+            _userRepo.Add<Like>(like);
 
-            if(await _repo.SaveAll())
+            if(await _userRepo.SaveAll())
             {
                 return Ok();
             }

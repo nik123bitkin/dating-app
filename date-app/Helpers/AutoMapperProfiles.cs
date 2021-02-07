@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-using date_app.DTOs;
-using date_app.Models;
+using AppCore.DTOs;
+using AppCore.Entities;
 using System.Linq;
+using AppCore.Helpers;
 
 namespace date_app.Helpers
 {

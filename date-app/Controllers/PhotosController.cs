@@ -1,16 +1,16 @@
 ﻿using AutoMapper;
-using date_app.Data;
-using date_app.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using CloudinaryDotNet;
 using System.Threading.Tasks;
-using date_app.DTOs;
+using AppCore.DTOs;
 using System.Security.Claims;
 using CloudinaryDotNet.Actions;
-using date_app.Models;
 using System.Linq;
+using AppCore.Interfaces;
+using AppCore.Entities;
+using AppCore.HelperEntities;
 
 namespace date_app.Controllers
 {
@@ -19,16 +19,19 @@ namespace date_app.Controllers
     [ApiController]
     public class PhotosController: ControllerBase
     {
-        private readonly IDatingRepository _repo;
+        private readonly IPhotoRepository _photoRepo;
+        private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
         private readonly IOptions<CloudinarySettings> _cloudinarySettings;
         private Cloudinary _cloudinary;
 
-        public PhotosController(IDatingRepository repo, 
+        public PhotosController(IPhotoRepository repo,
+            IUserRepository userRepo,
             IMapper mapper, 
             IOptions<CloudinarySettings> cloudinarySettings)
         {
-            _repo = repo;
+            _photoRepo = repo;
+            _userRepo = userRepo;
             _mapper = mapper;
             _cloudinarySettings = cloudinarySettings;
 
@@ -44,7 +47,7 @@ namespace date_app.Controllers
         [HttpGet("{id}", Name = "GetPhoto")]
         public async Task<IActionResult> GetPhoto(int id)
         {
-            var photoFromRepo = await _repo.GetPhoto(id);
+            var photoFromRepo = await _photoRepo.GetPhoto(id);
 
             var photo = _mapper.Map<PhotoForReturnDto>(photoFromRepo);
 
@@ -60,7 +63,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _repo.GetUser(userId);
+            var userFromRepo = await _userRepo.GetUser(userId);
 
             var file = photoForCreationDto.File;
 
@@ -90,7 +93,7 @@ namespace date_app.Controllers
             }
 
             userFromRepo.Photos.Add(photo);
-            if (await _repo.SaveAll())
+            if (await _photoRepo.SaveAll())
             {
                 var photoForReturn = _mapper.Map<PhotoForReturnDto>(photo);
                 return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photoForReturn);
@@ -107,24 +110,24 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _repo.GetUser(userId);
+            var userFromRepo = await _userRepo.GetUser(userId);
 
             if(!userFromRepo.Photos.Any(p => p.Id == id))
             {
                 return Unauthorized();
             }
 
-            var photoFromRepo = await _repo.GetPhoto(id);
+            var photoFromRepo = await _photoRepo.GetPhoto(id);
             if (photoFromRepo.IsMain)
             {
                 return BadRequest("This is already the main photo");
             }
 
-            var currentMainPhoto = await _repo.GetMainPhotoForUser(userId);
+            var currentMainPhoto = await _photoRepo.GetMainPhotoForUser(userId);
             currentMainPhoto.IsMain = false;
             photoFromRepo.IsMain = true;
 
-            if (await _repo.SaveAll()){
+            if (await _photoRepo.SaveAll()){
                 return NoContent();
             }
 
@@ -139,14 +142,14 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _repo.GetUser(userId);
+            var userFromRepo = await _userRepo.GetUser(userId);
 
             if (!userFromRepo.Photos.Any(p => p.Id == id))
             {
                 return Unauthorized();
             }
 
-            var photoFromRepo = await _repo.GetPhoto(id);
+            var photoFromRepo = await _photoRepo.GetPhoto(id);
             if (photoFromRepo.IsMain)
             {
                 return BadRequest("You cannot delete your main photo");
@@ -160,16 +163,16 @@ namespace date_app.Controllers
 
                 if (result.Result == "ok")
                 {
-                    _repo.Delete(photoFromRepo);
+                    _photoRepo.Delete(photoFromRepo);
                 }
             }
 
             if (photoFromRepo.PublicId == null)
             {
-                _repo.Delete(photoFromRepo);
+                _photoRepo.Delete(photoFromRepo);
             }
 
-            if (await _repo.SaveAll())
+            if (await _photoRepo.SaveAll())
             {
                 return Ok();
             }

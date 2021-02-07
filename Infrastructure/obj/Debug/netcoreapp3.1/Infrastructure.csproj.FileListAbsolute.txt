@@ -1,0 +1,16 @@
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\Infrastructure.deps.json
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\Infrastructure.dll
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\Infrastructure.pdb
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.csprojAssemblyReference.cache
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.AssemblyInfo.cs
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.dll
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.pdb
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\Seeding\UserSeedData.json
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\AppCore.dll
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\AppCore.pdb
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.csproj.CopyComplete
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\Infrastructure.runtimeconfig.json
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\bin\Debug\netcoreapp3.1\Infrastructure.runtimeconfig.dev.json
+C:\Users\Nikita Bitkin\source\repos\date-app\Infrastructure\obj\Debug\netcoreapp3.1\Infrastructure.genruntimeconfig.cache
