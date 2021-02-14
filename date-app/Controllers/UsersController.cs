@@ -2,7 +2,6 @@
 using AppCore.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -19,13 +18,11 @@ namespace date_app.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IUserRepository _userRepo;
-        private readonly IMapper _mapper;
+        private readonly IUserService _userService;
 
-        public UsersController(IUserRepository userRepo, IMapper mapper)
+        public UsersController(IUserService userService)
         {
-            _userRepo = userRepo;
-            _mapper = mapper;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -33,32 +30,20 @@ namespace date_app.Controllers
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var userFromRepo = await _userRepo.GetUser(currentUserId);
+            (PagedList<User> usersForPaging, IEnumerable<UserForListDto> usersToReturn) returnedUsers = await _userService.GetUsers(currentUserId, userParams);
 
-            userParams.UserId = currentUserId;
+            Response.AddPagination(returnedUsers.usersForPaging.CurrentPage, returnedUsers.usersForPaging.PageSize, 
+                returnedUsers.usersForPaging.TotalCount, returnedUsers.usersForPaging.TotalPages);
 
-            if (string.IsNullOrEmpty(userParams.Gender))
-            {
-                userParams.Gender = userFromRepo.Gender == "male" ? "female" : "male";
-            }
-
-            var users = await _userRepo.GetUsers(userParams);
-
-            var usersToReturn = _mapper.Map<IEnumerable<UserForListDto>>(users);
-
-            Response.AddPagination(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
-
-            return Ok(usersToReturn);
+            return Ok(returnedUsers.usersToReturn);
         }
 
         [HttpGet("{id}", Name ="GetUser")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _userRepo.GetUser(id);
+            var user = await _userService.GetUser(id);
 
-            var userToReturn = _mapper.Map<UserForDetailedDTO>(user);
-
-            return Ok(userToReturn);
+            return Ok(user);
         }
 
         [HttpPut("{id}")]
@@ -69,16 +54,16 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _userRepo.GetUser(id);
+            var updateResult = await _userService.UpdateUser(id, userForUpdateDto);
 
-            _mapper.Map(userForUpdateDto, userFromRepo);
-
-            if(await _userRepo.SaveAll())
+            if (updateResult == ReturnTypes.Good)
             {
                 return NoContent();
             }
-
-            throw new Exception($"Updating user with {id} failed on save");
+            else
+            {
+                return BadRequest($"Updating user with {id} failed on save");
+            }
         }
 
         [HttpPost("{id}/like/{recipientId}")]
@@ -89,32 +74,19 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var like = await _userRepo.GetLike(id, recipientId);
+            var result = await _userService.LikeUser(id, recipientId);
 
-            if(like != null)
+            switch (result)
             {
-                return BadRequest("You have already liked this user");
+                case ReturnTypes.SaveError:
+                    return BadRequest("Failed to like user");
+                case ReturnTypes.DataError:
+                    return BadRequest("You have already liked this user");
+                case ReturnTypes.NotFound:
+                    return NotFound();
+                default:
+                    return Ok();
             }
-
-            if(await _userRepo.GetUser(recipientId) == null)
-            {
-                return NotFound();
-            }
-
-            like = new Like
-            {
-                LikerId = id,
-                LikeeId = recipientId
-            };
-
-            _userRepo.Add<Like>(like);
-
-            if(await _userRepo.SaveAll())
-            {
-                return Ok();
-            }
-
-            return BadRequest("Failed to like user");
         }
     }
 }

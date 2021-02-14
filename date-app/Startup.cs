@@ -1,6 +1,7 @@
 using AppCore.HelperEntities;
 using AppCore.Helpers;
 using AppCore.Interfaces;
+using AppCore.Services;
 using AutoMapper;
 using date_app.Helpers;
 using Infrastructure.Context;
@@ -55,13 +56,12 @@ namespace date_app
             services.AddSingleton(mapper);
 
             //services.AddAutoMapper(typeof(DatingRepository).Assembly);
-
-
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IDataRepository, DataRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IPhotoRepository, PhotoRepository>();
+            services.AddScoped<IUserService, UserService>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                     options.TokenValidationParameters = new TokenValidationParameters

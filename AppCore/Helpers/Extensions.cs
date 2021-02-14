@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
 
 namespace AppCore.Helpers
 {
@@ -13,14 +12,6 @@ namespace AppCore.Helpers
             response.Headers.Add("Application-Error", message);
             response.Headers.Add("Access-Control-Expose-Headers", "Application-Error");
             response.Headers.Add("Access-Control-Allow-Origin", "*");
-        }
-
-        public static int CalculateAge(this DateTime dateTime)
-        {
-            var age = DateTime.Today.Year - dateTime.Year;
-            if (dateTime.AddYears(age) > DateTime.Today)
-                age--;
-            return age;
         }
 
         public static void AddPagination (this HttpResponse response, 
