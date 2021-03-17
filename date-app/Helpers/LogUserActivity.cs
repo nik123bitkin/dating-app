@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using AppCore.Interfaces;
 
-namespace AppCore.Helpers
+namespace date_app.Helpers
 {
     public class LogUserActivity : IAsyncActionFilter
     {
@@ -14,12 +14,9 @@ namespace AppCore.Helpers
             var resultContext = await next();
             var userId = int.Parse(resultContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var repo = resultContext.HttpContext.RequestServices.GetService<IUserRepository>();
-            var user = await repo.GetUser(userId);
-
-            user.LastActive = DateTime.Now;
-
-            await repo.SaveAll();
+            var userService = resultContext.HttpContext.RequestServices.GetService<IUserService>();
+            
+            await userService.LogActivity(userId);
         }
     }
 }

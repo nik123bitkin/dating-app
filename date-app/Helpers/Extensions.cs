@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace AppCore.Helpers
+namespace date_app.Helpers
 {
-    public static class Extensions
+    public static class HeadersExtensions
     {
         public static void AddApplicationError(this HttpResponse response, string message)
         {

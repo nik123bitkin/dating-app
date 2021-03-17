@@ -1,7 +1,7 @@
 ﻿using AppCore.Entities;
 using AppCore.HelperEntities;
-using AppCore.Interfaces;
 using Infrastructure.Context;
+using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class UserRepository : DataRepository, IUserRepository
+    public class UserRepository : DataRepository<User>, IUserRepository
     {
         public UserRepository(DataContext context) : base (context)
         {}

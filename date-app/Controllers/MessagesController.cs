@@ -6,10 +6,10 @@ using AutoMapper;
 using AppCore.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using AppCore.Interfaces;
 using AppCore.Entities;
-using AppCore.Helpers;
 using AppCore.HelperEntities;
+using date_app.Helpers;
+using Infrastructure.Interfaces;
 
 namespace date_app.Controllers
 {
@@ -38,7 +38,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messageFromRepo = await _messageRepo.GetMessage(id);
+            var messageFromRepo = await _messageRepo.GetById(id);
             if (messageFromRepo == null)
             {
                 return NotFound();
@@ -68,7 +68,7 @@ namespace date_app.Controllers
 
             var message = _mapper.Map<Message>(messageForCreationDto);
 
-            _messageRepo.Add<Message>(message);
+            _messageRepo.Add(message);
 
             if (await _messageRepo.SaveAll())
             {
@@ -123,7 +123,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messageFromRepo = await _messageRepo.GetMessage(id);
+            var messageFromRepo = await _messageRepo.GetById(id);
             if (messageFromRepo.SenderId == userId)
             {
                 messageFromRepo.SenderDeleted = true;
@@ -154,7 +154,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var message = await _messageRepo.GetMessage(id);
+            var message = await _messageRepo.GetById(id);
             if(message.RecipientId != userId)
             {
                 return Unauthorized();

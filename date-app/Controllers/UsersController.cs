@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using AppCore.DTOs;
+﻿using AppCore.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -7,8 +6,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AppCore.Interfaces;
 using AppCore.Entities;
-using AppCore.Helpers;
 using AppCore.HelperEntities;
+using date_app.Helpers;
+using AppCore.Exceptions;
 
 namespace date_app.Controllers
 {
@@ -54,15 +54,14 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var updateResult = await _userService.UpdateUser(id, userForUpdateDto);
-
-            if (updateResult == ReturnTypes.Good)
+            try
             {
+                await _userService.UpdateUser(id, userForUpdateDto);
                 return NoContent();
             }
-            else
+            catch (SaveDataException)
             {
-                return BadRequest($"Updating user with {id} failed on save");
+                return Problem($"Updating user with {id} failed on save");
             }
         }
 
@@ -74,18 +73,22 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var result = await _userService.LikeUser(id, recipientId);
-
-            switch (result)
+            try
             {
-                case ReturnTypes.SaveError:
-                    return BadRequest("Failed to like user");
-                case ReturnTypes.DataError:
-                    return BadRequest("You have already liked this user");
-                case ReturnTypes.NotFound:
-                    return NotFound();
-                default:
-                    return Ok();
+                await _userService.LikeUser(id, recipientId);
+                return Ok();
+            }
+            catch (AlreadyExistsException)
+            {
+                return Conflict("You have already liked this user");
+            }
+            catch (NotFoundException)
+            {
+                return NotFound("Failed to like user. Recipient not found");
+            }
+            catch (SaveDataException)
+            {
+                return Problem("Error occured during saving process.");
             }
         }
     }

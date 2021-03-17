@@ -3,11 +3,10 @@ using AppCore.HelperEntities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AppCore.Interfaces
+namespace Infrastructure.Interfaces
 {
-    public interface IMessageRepository : IDataRepository
+    public interface IMessageRepository: IDataRepository<Message>
     {
-        Task<Message> GetMessage(int id);
         Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams);
         Task<IEnumerable<Message>> GetMessageThread(int userId, int recipientId);
     }

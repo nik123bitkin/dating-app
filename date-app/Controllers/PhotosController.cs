@@ -8,9 +8,9 @@ using AppCore.DTOs;
 using System.Security.Claims;
 using CloudinaryDotNet.Actions;
 using System.Linq;
-using AppCore.Interfaces;
 using AppCore.Entities;
 using AppCore.HelperEntities;
+using Infrastructure.Interfaces;
 
 namespace date_app.Controllers
 {
@@ -47,7 +47,7 @@ namespace date_app.Controllers
         [HttpGet("{id}", Name = "GetPhoto")]
         public async Task<IActionResult> GetPhoto(int id)
         {
-            var photoFromRepo = await _photoRepo.GetPhoto(id);
+            var photoFromRepo = await _photoRepo.GetById(id);
 
             var photo = _mapper.Map<PhotoForReturnDto>(photoFromRepo);
 
@@ -117,7 +117,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var photoFromRepo = await _photoRepo.GetPhoto(id);
+            var photoFromRepo = await _photoRepo.GetById(id);
             if (photoFromRepo.IsMain)
             {
                 return BadRequest("This is already the main photo");
@@ -149,7 +149,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var photoFromRepo = await _photoRepo.GetPhoto(id);
+            var photoFromRepo = await _photoRepo.GetById(id);
             if (photoFromRepo.IsMain)
             {
                 return BadRequest("You cannot delete your main photo");

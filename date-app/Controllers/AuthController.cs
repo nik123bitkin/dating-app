@@ -9,7 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using AppCore.Interfaces;
+using Infrastructure.Interfaces;
 
 namespace date_app.Controllers
 {

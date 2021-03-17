@@ -1,17 +1,16 @@
 using AppCore.HelperEntities;
-using AppCore.Helpers;
 using AppCore.Interfaces;
-using AppCore.Services;
 using AutoMapper;
 using date_app.Helpers;
 using Infrastructure.Context;
+using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -57,10 +56,11 @@ namespace date_app
 
             //services.AddAutoMapper(typeof(DatingRepository).Assembly);
             services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IDataRepository, DataRepository>();
+            //services.AddScoped<IDataRepository, DataRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IPhotoRepository, PhotoRepository>();
+            services.AddScoped<ILikeRepository, LikeRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
