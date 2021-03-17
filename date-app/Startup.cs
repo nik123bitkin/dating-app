@@ -1,7 +1,11 @@
+using AppCore.HelperEntities;
+using AppCore.Helpers;
+using AppCore.Interfaces;
+using AppCore.Services;
 using AutoMapper;
-using date_app.Data;
 using date_app.Helpers;
-using date_app.Models;
+using Infrastructure.Context;
+using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -43,9 +47,21 @@ namespace date_app
             });
             services.AddCors();
             services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
-            services.AddAutoMapper(typeof(DatingRepository).Assembly);
+
+            var mapperConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile<AutoMapperProfiles>();
+            });
+            IMapper mapper = mapperConfig.CreateMapper();
+            services.AddSingleton(mapper);
+
+            //services.AddAutoMapper(typeof(DatingRepository).Assembly);
             services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IDatingRepository, DatingRepository>();
+            services.AddScoped<IDataRepository, DataRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<IPhotoRepository, PhotoRepository>();
+            services.AddScoped<IUserService, UserService>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -99,7 +115,7 @@ namespace date_app
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            
+
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
             if (!env.IsDevelopment())

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
-using date_app.Data;
-using date_app.DTOs;
-using date_app.Helpers;
-using date_app.Models;
+using AppCore.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AppCore.Interfaces;
+using AppCore.Entities;
+using AppCore.Helpers;
+using AppCore.HelperEntities;
 
 namespace date_app.Controllers
 {
@@ -18,12 +19,14 @@ namespace date_app.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        private readonly IDatingRepository _repo;
+        private readonly IMessageRepository _messageRepo;
+        private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
 
-        public MessagesController(IDatingRepository repo, IMapper mapper)
+        public MessagesController(IMessageRepository messageRepo, IUserRepository userRepo, IMapper mapper)
         {
-            _repo = repo;
+            _messageRepo = messageRepo;
+            _userRepo = userRepo;
             _mapper = mapper;
         }
 
@@ -35,7 +38,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messageFromRepo = await _repo.GetMessage(id);
+            var messageFromRepo = await _messageRepo.GetMessage(id);
             if (messageFromRepo == null)
             {
                 return NotFound();
@@ -48,7 +51,7 @@ namespace date_app.Controllers
         public async Task<IActionResult> CreateMessage(int userId, MessageForCreationDto messageForCreationDto)
         {
 
-            var sender = await _repo.GetUser(userId);
+            var sender = await _userRepo.GetUser(userId);
 
             if (sender.Id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
             {
@@ -57,7 +60,7 @@ namespace date_app.Controllers
 
             messageForCreationDto.SenderId = userId;
 
-            var recipient = await _repo.GetUser(messageForCreationDto.RecipientId);
+            var recipient = await _userRepo.GetUser(messageForCreationDto.RecipientId);
             if (recipient == null)
             {
                 return BadRequest("Couldn't find user");
@@ -65,9 +68,9 @@ namespace date_app.Controllers
 
             var message = _mapper.Map<Message>(messageForCreationDto);
 
-            _repo.Add<Message>(message);
+            _messageRepo.Add<Message>(message);
 
-            if (await _repo.SaveAll())
+            if (await _messageRepo.SaveAll())
             {
                 var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
                 return CreatedAtRoute("GetMessage", new { userId, id = message.Id }, messageToReturn);
@@ -86,7 +89,7 @@ namespace date_app.Controllers
 
             messageParams.UserId = userId;
 
-            var messagesFromRepo = await _repo.GetMessagesForUser(messageParams);
+            var messagesFromRepo = await _messageRepo.GetMessagesForUser(messageParams);
 
             var messages = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
 
@@ -105,7 +108,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messagesFromRepo = await _repo.GetMessageThread(userId, recipientId);
+            var messagesFromRepo = await _messageRepo.GetMessageThread(userId, recipientId);
 
             var messageThread = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
 
@@ -120,7 +123,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messageFromRepo = await _repo.GetMessage(id);
+            var messageFromRepo = await _messageRepo.GetMessage(id);
             if (messageFromRepo.SenderId == userId)
             {
                 messageFromRepo.SenderDeleted = true;
@@ -132,10 +135,10 @@ namespace date_app.Controllers
 
             if(messageFromRepo.SenderDeleted && messageFromRepo.RecipientDeleted)
             {
-                _repo.Delete(messageFromRepo);
+                _messageRepo.Delete(messageFromRepo);
             }
 
-            if(await _repo.SaveAll())
+            if(await _messageRepo.SaveAll())
             {
                 return NoContent();
             }
@@ -151,7 +154,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var message = await _repo.GetMessage(id);
+            var message = await _messageRepo.GetMessage(id);
             if(message.RecipientId != userId)
             {
                 return Unauthorized();
@@ -160,7 +163,7 @@ namespace date_app.Controllers
             message.IsRead = true;
             message.DateRead = DateTime.Now;
 
-            await _repo.SaveAll();
+            await _messageRepo.SaveAll();
 
             return NoContent();
         }
