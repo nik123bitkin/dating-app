@@ -10,6 +10,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Infrastructure.Interfaces;
+using AppCore.Interfaces;
+using AppCore.Exceptions;
 
 namespace date_app.Controllers
 {
@@ -17,77 +19,47 @@ namespace date_app.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthRepository _repo;
-        private readonly IConfiguration _config;
-        private readonly IMapper _mapper;
+        private readonly IAuthService _authService;
 
-        public AuthController(IAuthRepository repo, IConfiguration config, IMapper mapper)
+        public AuthController(IAuthService authService)
         {
-            _repo = repo;
-            _config = config;
-            _mapper = mapper;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserForRegisterDto userForRegisterDto)
         {
-            userForRegisterDto.Username= userForRegisterDto.Username.ToLower();
-
-            if(await _repo.UserExists(userForRegisterDto.Username))
+            try
             {
-                return BadRequest("Username already exists");
+                var user = _authService.Register(userForRegisterDto);
+                return CreatedAtRoute("GetUser", new { controller = "Users", id = user.Id }, user);
             }
-
-            var userToCreate = _mapper.Map<User>(userForRegisterDto);
-
-            var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
-
-            var userToReturn = _mapper.Map<UserForDetailedDTO>(createdUser);
-
-            return CreatedAtRoute("GetUser", new {controller = "Users", id = createdUser.Id }, userToReturn);
+            catch (AlreadyExistsException)
+            {
+                return Conflict("Username already exists");
+            }
+            catch
+            {
+                return BadRequest("Internal server error.");
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
-            var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
-
-            if (userFromRepo == null)
+            try
             {
-                return Unauthorized();
+                var result = await _authService.Login(userForLoginDto);
+                return Ok(result);
             }
-
-            var claims = new[]
+            catch (NotFoundException)
             {
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                new Claim(ClaimTypes.Name, userFromRepo.Username)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8
-                .GetBytes(_config.GetSection("AppSettings:Token").Value));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+                return Unauthorized("User not found");
+            }
+            catch
             {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            var user = _mapper.Map<UserForListDto>(userFromRepo);
-
-            return Ok(
-                new
-                {
-                    token = tokenHandler.WriteToken(token),
-                    user
-                }
-            );
+                return Problem("Internal server error.");
+            }
         }
     }
 }

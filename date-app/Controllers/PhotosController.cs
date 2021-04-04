@@ -11,6 +11,8 @@ using System.Linq;
 using AppCore.Entities;
 using AppCore.HelperEntities;
 using Infrastructure.Interfaces;
+using AppCore.Interfaces;
+using AppCore.Exceptions;
 
 namespace date_app.Controllers
 {
@@ -19,37 +21,22 @@ namespace date_app.Controllers
     [ApiController]
     public class PhotosController: ControllerBase
     {
-        private readonly IPhotoRepository _photoRepo;
-        private readonly IUserRepository _userRepo;
-        private readonly IMapper _mapper;
-        private readonly IOptions<CloudinarySettings> _cloudinarySettings;
-        private Cloudinary _cloudinary;
+        private readonly IPhotoService _photoService;
+        //private readonly IUserRepository _userRepo;
+        //private readonly IMapper _mapper;
+        //private readonly IOptions<CloudinarySettings> _cloudinarySettings;
+        //private Cloudinary _cloudinary;
 
-        public PhotosController(IPhotoRepository repo,
-            IUserRepository userRepo,
-            IMapper mapper, 
-            IOptions<CloudinarySettings> cloudinarySettings)
+        public PhotosController(IPhotoService photoService)
         {
-            _photoRepo = repo;
-            _userRepo = userRepo;
-            _mapper = mapper;
-            _cloudinarySettings = cloudinarySettings;
-
-            Account acc = new Account(
-                _cloudinarySettings.Value.CloudName,
-                _cloudinarySettings.Value.ApiKey,
-                _cloudinarySettings.Value.ApiSecret
-            );
-
-            _cloudinary = new Cloudinary(acc);
+            _photoService = photoService;
+            //_mapper = mapper;           
         }
 
         [HttpGet("{id}", Name = "GetPhoto")]
         public async Task<IActionResult> GetPhoto(int id)
         {
-            var photoFromRepo = await _photoRepo.GetById(id);
-
-            var photo = _mapper.Map<PhotoForReturnDto>(photoFromRepo);
+            var photo = await _photoService.GetPhoto(id);
 
             return Ok(photo);
         }
@@ -63,43 +50,19 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _userRepo.GetUser(userId);
-
-            var file = photoForCreationDto.File;
-
-            var uploadResult = new ImageUploadResult();
-
-            if(file.Length > 0)
+            try
             {
-                using(var stream = file.OpenReadStream())
-                {
-                    var uploadParams = new ImageUploadParams()
-                    { 
-                        File = new FileDescription(file.Name, stream),
-                        Transformation = new Transformation().Width(500).Height(500).Crop("fill").Gravity("face")
-                    };
-
-                    uploadResult = _cloudinary.Upload(uploadParams);
-                }
+                var photo = await _photoService.AddForUser(userId, photoForCreationDto);
+                return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photo);
             }
-
-            photoForCreationDto.Url = uploadResult.Url.ToString();
-            photoForCreationDto.PublicId = uploadResult.PublicId;
-
-            var photo = _mapper.Map<Photo>(photoForCreationDto);
-            if (!userFromRepo.Photos.Any(u => u.IsMain))
+            catch (SaveDataException)
             {
-                photo.IsMain = true;
+                return Problem("Couldn't add photo");
             }
-
-            userFromRepo.Photos.Add(photo);
-            if (await _photoRepo.SaveAll())
+            catch
             {
-                var photoForReturn = _mapper.Map<PhotoForReturnDto>(photo);
-                return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photoForReturn);
+                return Problem("Internal server error.");
             }
-
-            return BadRequest("Couldn't add photo");
         }
 
         [HttpPost("{id}/setMain")]
@@ -110,28 +73,27 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _userRepo.GetUser(userId);
-
-            if(!userFromRepo.Photos.Any(p => p.Id == id))
+            try
             {
-                return Unauthorized();
-            }
-
-            var photoFromRepo = await _photoRepo.GetById(id);
-            if (photoFromRepo.IsMain)
-            {
-                return BadRequest("This is already the main photo");
-            }
-
-            var currentMainPhoto = await _photoRepo.GetMainPhotoForUser(userId);
-            currentMainPhoto.IsMain = false;
-            photoFromRepo.IsMain = true;
-
-            if (await _photoRepo.SaveAll()){
+                await _photoService.SetAsMain(userId, id);
                 return NoContent();
             }
-
-            return BadRequest("Could not set photo as main");
+            catch (NotFoundException)
+            {
+                return NotFound($"Photo with id {id} doesn't exist");
+            }
+            catch (AlreadyExistsException)
+            {
+                return Conflict("This is a main photo already");
+            }
+            catch (SaveDataException)
+            {
+                return Problem("Error occured during saving process.");
+            }
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
         [HttpDelete("{id}")]
@@ -142,42 +104,27 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var userFromRepo = await _userRepo.GetUser(userId);
-
-            if (!userFromRepo.Photos.Any(p => p.Id == id))
+            try
             {
-                return Unauthorized();
-            }
-
-            var photoFromRepo = await _photoRepo.GetById(id);
-            if (photoFromRepo.IsMain)
-            {
-                return BadRequest("You cannot delete your main photo");
-            }
-
-            if (photoFromRepo.PublicId != null)
-            {
-                var deleteParams = new DeletionParams(photoFromRepo.PublicId);
-
-                var result = _cloudinary.Destroy(deleteParams);
-
-                if (result.Result == "ok")
-                {
-                    _photoRepo.Delete(photoFromRepo);
-                }
-            }
-
-            if (photoFromRepo.PublicId == null)
-            {
-                _photoRepo.Delete(photoFromRepo);
-            }
-
-            if (await _photoRepo.SaveAll())
-            {
+                await _photoService.DeleteForUser(userId, id);
                 return Ok();
             }
-
-            return BadRequest("Failed to delete the photo");
+            catch (NotFoundException)
+            {
+                return NotFound($"Photo with id {id} doesn't exist");
+            }
+            catch (ForbiddenActionException)
+            {
+                return Conflict("You cannot delete your main photo");
+            }
+            catch (SaveDataException)
+            {
+                return Problem("Error occured during saving process.");
+            }
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
     }

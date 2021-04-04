@@ -63,6 +63,10 @@ namespace date_app.Controllers
             {
                 return Problem($"Updating user with {id} failed on save");
             }
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
         [HttpPost("{id}/like/{recipientId}")]
@@ -89,6 +93,10 @@ namespace date_app.Controllers
             catch (SaveDataException)
             {
                 return Problem("Error occured during saving process.");
+            }
+            catch
+            {
+                return Problem("Internal server error.");
             }
         }
     }
