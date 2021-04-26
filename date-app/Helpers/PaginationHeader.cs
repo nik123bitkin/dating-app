@@ -1,4 +1,4 @@
-﻿namespace AppCore.HelperEntities
+﻿namespace date_app.Helpers
 {
     public class PaginationHeader
     {

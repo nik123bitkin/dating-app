@@ -1,7 +1,7 @@
 ﻿using AppCore.Entities;
 using AppCore.HelperEntities;
-using AppCore.Interfaces;
 using Infrastructure.Context;
+using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +9,10 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class MessageRepository : DataRepository, IMessageRepository
+    public class MessageRepository : DataRepository<Message>, IMessageRepository
     {
         public MessageRepository(DataContext context) : base(context)
         { }
-        public async Task<Message> GetMessage(int id)
-        {
-            return await _context.Messages.FirstOrDefaultAsync(m => m.Id == id);
-        }
         public async Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams)
         {
             var messages = _context.Messages

@@ -1,22 +1,27 @@
 ﻿using AppCore.DTOs;
 using AppCore.Entities;
+using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AutoMapper;
+using Infrastructure.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AppCore.Services
+namespace Infrastructure.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
+        private readonly ILikeRepository _likeRepo;
 
-        public UserService(IUserRepository userRepo, IMapper mapper)
+        public UserService(IUserRepository userRepo, IMapper mapper, ILikeRepository likeRepo)
         {
             _userRepo = userRepo;
             _mapper = mapper;
+            _likeRepo = likeRepo;
         }
 
         public async Task<(PagedList<User>, IEnumerable<UserForListDto>)> GetUsers(int id, UserParams userParams)
@@ -37,15 +42,22 @@ namespace AppCore.Services
             return (users, usersToReturn);
         }
 
-        public async Task<ReturnTypes> UpdateUser(int id, UserForUpdateDto userForUpdateDto)
+        public async Task UpdateUser(int id, UserForUpdateDto userForUpdateDto)
         {
             var userFromRepo = await _userRepo.GetUser(id);
 
             _mapper.Map(userForUpdateDto, userFromRepo);
 
-            return await _userRepo.SaveAll() ? ReturnTypes.Good : ReturnTypes.SaveError;
+            try
+            {
+                await _userRepo.SaveAll();
+            }
+            catch
+            {
+                throw new SaveDataException();
+            }
         }
-    
+
         public async Task<UserForDetailedDTO> GetUser(int id)
         {
             var user = await _userRepo.GetUser(id);
@@ -55,20 +67,18 @@ namespace AppCore.Services
             return userToReturn;
         }
 
-        public async Task<ReturnTypes> LikeUser(int id, int recipientId)
+        public async Task LikeUser(int id, int recipientId)
         {
             var like = await _userRepo.GetLike(id, recipientId);
 
             if (like != null)
             {
-                //return BadRequest("You have already liked this user");
-                return ReturnTypes.DataError;
+                throw new AlreadyExistsException();
             }
 
             if (await _userRepo.GetUser(recipientId) == null)
             {
-                //return NotFound();
-                return ReturnTypes.NotFound;
+                throw new NotFoundException();
             }
 
             like = new Like
@@ -77,9 +87,26 @@ namespace AppCore.Services
                 LikeeId = recipientId
             };
 
-            _userRepo.Add(like);
+            _likeRepo.Add(like);
 
-            return await _userRepo.SaveAll() ? ReturnTypes.Good : ReturnTypes.SaveError;
+            try
+            {
+                await _userRepo.SaveAll();
+                    }
+            catch 
+            {
+                throw new SaveDataException();
+            }
         }
+
+        public async Task LogActivity(int id)
+        {
+            var user = await _userRepo.GetUser(id);
+
+            user.LastActive = DateTime.Now;
+
+            await _userRepo.SaveAll();
+        }
+
     }
 }
