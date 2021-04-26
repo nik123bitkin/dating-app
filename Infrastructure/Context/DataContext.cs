@@ -1,14 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
-using AppCore.Entities;
+﻿using AppCore.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Context
 {
     public class DataContext : DbContext
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
+        public DataContext(DbContextOptions<DataContext> options)
+            : base(options)
+        {
+        }
+
         public DbSet<User> Users { get; set; }
+
         public DbSet<Photo> Photos { get; set; }
+
         public DbSet<Like> Likes { get; set; }
+
         public DbSet<Message> Messages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

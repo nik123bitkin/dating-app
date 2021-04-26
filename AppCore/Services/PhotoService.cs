@@ -1,4 +1,6 @@
-﻿using AppCore.DTOs;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using AppCore.DTOs;
 using AppCore.Entities;
 using AppCore.Exceptions;
 using AppCore.HelperEntities;
@@ -7,8 +9,6 @@ using AutoMapper;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AppCore.Services
 {
@@ -19,10 +19,9 @@ namespace AppCore.Services
         private readonly IMapper _mapper;
 
         private readonly IOptions<CloudinarySettings> _cloudinarySettings;
-        private Cloudinary _cloudinary;
+        private readonly Cloudinary _cloudinary;
 
-        public PhotoService(IPhotoRepository photoRepo, IUserRepository userRepo, IMapper mapper,
-            IOptions<CloudinarySettings> cloudinarySettings)
+        public PhotoService(IPhotoRepository photoRepo, IUserRepository userRepo, IMapper mapper, IOptions<CloudinarySettings> cloudinarySettings)
         {
             _photoRepo = photoRepo;
             _userRepo = userRepo;
@@ -32,8 +31,7 @@ namespace AppCore.Services
             Account acc = new Account(
                 _cloudinarySettings.Value.CloudName,
                 _cloudinarySettings.Value.ApiKey,
-                _cloudinarySettings.Value.ApiSecret
-            );
+                _cloudinarySettings.Value.ApiSecret);
 
             _cloudinary = new Cloudinary(acc);
         }
@@ -75,8 +73,6 @@ namespace AppCore.Services
                 await _photoRepo.SaveAll();
                 var photoForReturn = _mapper.Map<PhotoForReturnDto>(photo);
                 return photoForReturn;
-                //return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photoForReturn);
-                
             }
             catch
             {

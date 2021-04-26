@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
@@ -10,11 +6,11 @@ using Microsoft.Extensions.Logging;
 namespace date_app.Pages
 {
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public class ErrorModel : PageModel
+    public class Error : PageModel
     {
-        private readonly ILogger<ErrorModel> _logger;
+        private readonly ILogger<Error> _logger;
 
-        public ErrorModel(ILogger<ErrorModel> logger)
+        public Error(ILogger<Error> logger)
         {
             _logger = logger;
         }

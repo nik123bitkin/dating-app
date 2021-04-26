@@ -42,10 +42,8 @@ export class UserService {
     return this.http.get<User[]>(this.baseUrl + 'users', { observe: 'response', params })
       .pipe(
         map(response => {
-          paginatedResult.result = response.body;
-          if (response.headers.get('Pagination') != null) {
-            paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
-          }
+          paginatedResult.result = response.body["data"];
+          paginatedResult.pagination = response.body["pagination"];
           return paginatedResult;
         }));
   }
@@ -83,10 +81,8 @@ export class UserService {
     return this.http.get<Message[]>(this.baseUrl + 'users/' + id + '/messages', { observe: 'response', params })
       .pipe(
         map(response => {
-          paginatedResult.result = response.body;
-          if (response.headers.get('Pagination') != null) {
-            paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
-          }
+          paginatedResult.result = response.body["data"];
+          paginatedResult.pagination = response.body["pagination"];
           return paginatedResult;
         })
       )

@@ -1,23 +1,23 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
 using AppCore.DTOs;
-using System.Security.Claims;
-using AppCore.Interfaces;
 using AppCore.Exceptions;
+using AppCore.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace date_app.Controllers
 {
     [Authorize]
     [Route("api/users/{userId}/photos")]
     [ApiController]
-    public class PhotosController: ControllerBase
+    public class PhotosController : ControllerBase
     {
         private readonly IPhotoService _photoService;
 
         public PhotosController(IPhotoService photoService)
         {
-            _photoService = photoService;          
+            _photoService = photoService;
         }
 
         [HttpGet("{id}", Name = "GetPhoto")]
@@ -29,8 +29,7 @@ namespace date_app.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPhotoForUser(int userId, 
-            [FromForm]PhotoForCreationDto photoForCreationDto)
+        public async Task<IActionResult> AddPhotoForUser(int userId, [FromForm]PhotoForCreationDto photoForCreationDto)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
             {
@@ -40,7 +39,7 @@ namespace date_app.Controllers
             try
             {
                 var photo = await _photoService.AddForUser(userId, photoForCreationDto);
-                return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photo);
+                return CreatedAtRoute("GetPhoto", new { userId, id = photo.Id }, photo);
             }
             catch (SaveDataException)
             {
@@ -113,6 +112,5 @@ namespace date_app.Controllers
                 return Problem("Internal server error.");
             }
         }
-
     }
 }

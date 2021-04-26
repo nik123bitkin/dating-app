@@ -1,14 +1,14 @@
-﻿using AppCore.DTOs;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AppCore.Interfaces;
+using AppCore.DTOs;
 using AppCore.Entities;
-using AppCore.HelperEntities;
-using date_app.Helpers;
 using AppCore.Exceptions;
+using AppCore.HelperEntities;
+using AppCore.Interfaces;
+using date_app.Helpers;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace date_app.Controllers
 {
@@ -30,12 +30,10 @@ namespace date_app.Controllers
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            (PagedList<User> usersForPaging, IEnumerable<UserForListDto> usersToReturn) returnedUsers = await _userService.GetUsers(currentUserId, userParams);
+            (PagedList<User> usersForPaging, IEnumerable<UserForListDto> usersToReturn) = await _userService.GetUsers(currentUserId, userParams);
+            var pagination = new Pagination(usersForPaging.CurrentPage, usersForPaging.PageSize, usersForPaging.TotalCount, usersForPaging.TotalPages);
 
-            Response.AddPagination(returnedUsers.usersForPaging.CurrentPage, returnedUsers.usersForPaging.PageSize, 
-                returnedUsers.usersForPaging.TotalCount, returnedUsers.usersForPaging.TotalPages);
-
-            return Ok(returnedUsers.usersToReturn);
+            return Ok(new { data = usersToReturn, pagination });
         }
 
         [HttpGet("{id}", Name ="GetUser")]

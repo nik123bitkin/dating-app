@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace AppCore.DTOs
+﻿namespace AppCore.DTOs
 {
     public class UserForLoginDto
     {

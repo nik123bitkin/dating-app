@@ -1,12 +1,12 @@
-﻿using AppCore.DTOs;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AppCore.DTOs;
 using AppCore.Entities;
 using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace AppCore.Services
 {
@@ -91,8 +91,8 @@ namespace AppCore.Services
             try
             {
                 await _userRepo.SaveAll();
-                    }
-            catch 
+            }
+            catch
             {
                 throw new SaveDataException();
             }
@@ -106,6 +106,5 @@ namespace AppCore.Services
 
             await _userRepo.SaveAll();
         }
-
     }
 }

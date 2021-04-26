@@ -1,8 +1,8 @@
-﻿using AppCore.DTOs;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using AppCore.Interfaces;
+﻿using System.Threading.Tasks;
+using AppCore.DTOs;
 using AppCore.Exceptions;
+using AppCore.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace date_app.Controllers
 {

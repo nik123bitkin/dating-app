@@ -1,12 +1,12 @@
-﻿using AppCore.DTOs;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AppCore.DTOs;
 using AppCore.Entities;
 using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace AppCore.Services
 {
@@ -41,7 +41,7 @@ namespace AppCore.Services
             {
                 await _messageRepo.SaveAll();
                 var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
-                return messageToReturn;               
+                return messageToReturn;
             }
             catch
             {
@@ -56,6 +56,7 @@ namespace AppCore.Services
             {
                 messageFromRepo.SenderDeleted = true;
             }
+
             if (messageFromRepo.RecipientId == userId)
             {
                 messageFromRepo.RecipientDeleted = true;

@@ -4,6 +4,8 @@ namespace AppCore.Exceptions
 {
     public class SaveDataException : Exception
     {
-        public SaveDataException() { }
+        public SaveDataException()
+        {
+        }
     }
 }

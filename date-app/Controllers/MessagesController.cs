@@ -2,13 +2,13 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AppCore.DTOs;
+using AppCore.Entities;
+using AppCore.Exceptions;
+using AppCore.HelperEntities;
+using AppCore.Interfaces;
+using date_app.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using AppCore.Entities;
-using AppCore.HelperEntities;
-using date_app.Helpers;
-using AppCore.Interfaces;
-using AppCore.Exceptions;
 
 namespace date_app.Controllers
 {
@@ -81,16 +81,16 @@ namespace date_app.Controllers
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
             {
                 return Unauthorized();
-            }    
+            }
+
             try
             {
-                (IEnumerable<MessageToReturnDto> messages, PagedList<Message> messagesFromRepo) 
+                (IEnumerable<MessageToReturnDto> messages, PagedList<Message> messagesFromRepo)
                     = await _messageService.GetMessagesForUser(userId, messageParams);
 
-                Response.AddPagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize,
-                    messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
+                var pagination = new Pagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
 
-                return Ok(messages);
+                return Ok(new { data = messages, pagination });
             }
             catch
             {
@@ -152,7 +152,6 @@ namespace date_app.Controllers
             {
                 await _messageService.MarkMessageAsRead(userId, id);
                 return NoContent();
-
             }
             catch (NotFoundException)
             {

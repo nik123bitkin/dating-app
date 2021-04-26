@@ -1,22 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Linq;
 using AppCore.DTOs;
 using AppCore.Entities;
-using System.Linq;
-using System;
+using AutoMapper;
 
 namespace date_app.Helpers
 {
-    public static class DateTimeExtensions
-    {
-        public static int CalculateAge(this DateTime dateTime)
-        {
-            var age = DateTime.Today.Year - dateTime.Year;
-            if (dateTime.AddYears(age) > DateTime.Today)
-                age--;
-            return age;
-        }
-    }
-
     public class AutoMapperProfiles : Profile
     {
         public AutoMapperProfiles()

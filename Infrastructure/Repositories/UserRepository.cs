@@ -1,24 +1,33 @@
-﻿using AppCore.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AppCore.Entities;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
     public class UserRepository : DataRepository<User>, IUserRepository
     {
-        public UserRepository(DataContext context) : base (context)
-        {}
+        public UserRepository(DataContext context)
+            : base(context)
+        {
+        }
+
         public async Task<User> GetUser(int id)
         {
             var user = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.Id == id);
             return user;
         }
+
+        public async Task<Like> GetLike(int userId, int recipientId)
+        {
+            return await _context.Likes.FirstOrDefaultAsync(u => u.LikerId == userId && u.LikeeId == recipientId);
+        }
+
         public async Task<PagedList<User>> GetUsers(UserParams userParams)
         {
             var users = _context.Users.Include(p => p.Photos).OrderByDescending(u => u.LastActive).AsQueryable();
@@ -59,6 +68,7 @@ namespace Infrastructure.Repositories
 
             return await PagedList<User>.CreateAsunc(users, userParams.PageNumber, userParams.PageSize);
         }
+
         private async Task<IEnumerable<int>> GetUserLikes(int id, bool likers)
         {
             var user = await _context.Users
@@ -75,10 +85,5 @@ namespace Infrastructure.Repositories
                 return user.Likees.Where(u => u.LikerId == id).Select(u => u.LikeeId);
             }
         }
-        public async Task<Like> GetLike(int userId, int recipientId)
-        {
-            return await _context.Likes.FirstOrDefaultAsync(u => u.LikerId == userId && u.LikeeId == recipientId);
-        }
-
     }
 }
