@@ -1,6 +1,6 @@
 ﻿using AppCore.Entities;
+using AppCore.Interfaces;
 using Infrastructure.Context;
-using Infrastructure.Interfaces;
 
 namespace Infrastructure.Repositories
 {

@@ -1,16 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using CloudinaryDotNet;
 using System.Threading.Tasks;
 using AppCore.DTOs;
 using System.Security.Claims;
-using CloudinaryDotNet.Actions;
-using System.Linq;
-using AppCore.Entities;
-using AppCore.HelperEntities;
-using Infrastructure.Interfaces;
 using AppCore.Interfaces;
 using AppCore.Exceptions;
 
@@ -22,15 +14,10 @@ namespace date_app.Controllers
     public class PhotosController: ControllerBase
     {
         private readonly IPhotoService _photoService;
-        //private readonly IUserRepository _userRepo;
-        //private readonly IMapper _mapper;
-        //private readonly IOptions<CloudinarySettings> _cloudinarySettings;
-        //private Cloudinary _cloudinary;
 
         public PhotosController(IPhotoService photoService)
         {
-            _photoService = photoService;
-            //_mapper = mapper;           
+            _photoService = photoService;          
         }
 
         [HttpGet("{id}", Name = "GetPhoto")]
@@ -57,7 +44,7 @@ namespace date_app.Controllers
             }
             catch (SaveDataException)
             {
-                return Problem("Couldn't add photo");
+                return Problem("Error occured during saving process.");
             }
             catch
             {
@@ -84,7 +71,7 @@ namespace date_app.Controllers
             }
             catch (AlreadyExistsException)
             {
-                return Conflict("This is a main photo already");
+                return Ok("This is a main photo already");
             }
             catch (SaveDataException)
             {
@@ -115,7 +102,7 @@ namespace date_app.Controllers
             }
             catch (ForbiddenActionException)
             {
-                return Conflict("You cannot delete your main photo");
+                return Forbid("You cannot delete your main photo");
             }
             catch (SaveDataException)
             {

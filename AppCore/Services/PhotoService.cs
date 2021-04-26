@@ -6,13 +6,11 @@ using AppCore.Interfaces;
 using AutoMapper;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Infrastructure.Interfaces;
 using Microsoft.Extensions.Options;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Services
+namespace AppCore.Services
 {
     public class PhotoService : IPhotoService
     {

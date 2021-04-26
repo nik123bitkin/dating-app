@@ -4,12 +4,11 @@ using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AutoMapper;
-using Infrastructure.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Services
+namespace AppCore.Services
 {
     public class MessageService : IMessageService
     {

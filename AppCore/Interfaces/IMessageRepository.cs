@@ -3,7 +3,7 @@ using AppCore.HelperEntities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Interfaces
+namespace AppCore.Interfaces
 {
     public interface IMessageRepository: IDataRepository<Message>
     {

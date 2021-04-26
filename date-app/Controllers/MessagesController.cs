@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AutoMapper;
 using AppCore.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AppCore.Entities;
 using AppCore.HelperEntities;
 using date_app.Helpers;
-using Infrastructure.Interfaces;
 using AppCore.Interfaces;
 using AppCore.Exceptions;
 
@@ -38,7 +35,7 @@ namespace date_app.Controllers
 
             try
             {
-                var message = _messageService.GetMessage(userId, id);
+                var message = await _messageService.GetMessage(userId, id);
                 return Ok(message);
             }
             catch (NotFoundException)

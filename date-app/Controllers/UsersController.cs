@@ -84,7 +84,7 @@ namespace date_app.Controllers
             }
             catch (AlreadyExistsException)
             {
-                return Conflict("You have already liked this user");
+                return Ok("You have already liked this user");
             }
             catch (NotFoundException)
             {

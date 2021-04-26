@@ -1,6 +1,6 @@
 ﻿using AppCore.Entities;
 
-namespace Infrastructure.Interfaces
+namespace AppCore.Interfaces
 {
     public interface ILikeRepository : IDataRepository<Like>
     {

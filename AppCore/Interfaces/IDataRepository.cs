@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Infrastructure.Interfaces
+namespace AppCore.Interfaces
 {
     public interface IDataRepository<T> where T: class
     {

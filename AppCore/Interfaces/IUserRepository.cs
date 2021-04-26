@@ -2,7 +2,7 @@
 using AppCore.Entities;
 using AppCore.HelperEntities;
 
-namespace Infrastructure.Interfaces
+namespace AppCore.Interfaces
 {
     public interface IUserRepository: IDataRepository<User>
     {

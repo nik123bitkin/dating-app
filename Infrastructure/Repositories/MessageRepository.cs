@@ -1,7 +1,7 @@
 ﻿using AppCore.Entities;
 using AppCore.HelperEntities;
+using AppCore.Interfaces;
 using Infrastructure.Context;
-using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,7 +1,7 @@
 ﻿using AppCore.Entities;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Interfaces
+namespace AppCore.Interfaces
 {
     public interface IPhotoRepository : IDataRepository<Photo>
     {

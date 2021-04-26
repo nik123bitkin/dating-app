@@ -1,15 +1,6 @@
-﻿using AutoMapper;
-using AppCore.DTOs;
-using AppCore.Entities;
+﻿using AppCore.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
-using Infrastructure.Interfaces;
 using AppCore.Interfaces;
 using AppCore.Exceptions;
 
@@ -31,16 +22,16 @@ namespace date_app.Controllers
         {
             try
             {
-                var user = _authService.Register(userForRegisterDto);
+                var user = await _authService.Register(userForRegisterDto);
                 return CreatedAtRoute("GetUser", new { controller = "Users", id = user.Id }, user);
             }
             catch (AlreadyExistsException)
             {
-                return Conflict("Username already exists");
+                return Ok("Username already exists");
             }
             catch
             {
-                return BadRequest("Internal server error.");
+                return Problem("Internal server error.");
             }
         }
 
