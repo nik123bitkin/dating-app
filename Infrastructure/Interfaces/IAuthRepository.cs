@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AppCore.Entities;
 
-namespace AppCore.Interfaces
+namespace Infrastructure.Interfaces
 {
     public interface IAuthRepository
     {

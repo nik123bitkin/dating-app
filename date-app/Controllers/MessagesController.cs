@@ -6,10 +6,12 @@ using AutoMapper;
 using AppCore.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using AppCore.Interfaces;
 using AppCore.Entities;
-using AppCore.Helpers;
 using AppCore.HelperEntities;
+using date_app.Helpers;
+using Infrastructure.Interfaces;
+using AppCore.Interfaces;
+using AppCore.Exceptions;
 
 namespace date_app.Controllers
 {
@@ -19,15 +21,11 @@ namespace date_app.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        private readonly IMessageRepository _messageRepo;
-        private readonly IUserRepository _userRepo;
-        private readonly IMapper _mapper;
+        private readonly IMessageService _messageService;
 
-        public MessagesController(IMessageRepository messageRepo, IUserRepository userRepo, IMapper mapper)
+        public MessagesController(IMessageService messageService)
         {
-            _messageRepo = messageRepo;
-            _userRepo = userRepo;
-            _mapper = mapper;
+            _messageService = messageService;
         }
 
         [HttpGet("{id}", Name = "GetMessage")]
@@ -38,45 +36,46 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messageFromRepo = await _messageRepo.GetMessage(id);
-            if (messageFromRepo == null)
+            try
+            {
+                var message = _messageService.GetMessage(userId, id);
+                return Ok(message);
+            }
+            catch (NotFoundException)
             {
                 return NotFound();
             }
-
-            return Ok(messageFromRepo);
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateMessage(int userId, MessageForCreationDto messageForCreationDto)
         {
-
-            var sender = await _userRepo.GetUser(userId);
-
-            if (sender.Id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
             {
                 return Unauthorized();
             }
 
-            messageForCreationDto.SenderId = userId;
-
-            var recipient = await _userRepo.GetUser(messageForCreationDto.RecipientId);
-            if (recipient == null)
+            try
             {
-                return BadRequest("Couldn't find user");
+                var message = await _messageService.CreateMessage(userId, messageForCreationDto);
+                return CreatedAtRoute("GetMessage", new { userId, id = message.Id }, message);
             }
-
-            var message = _mapper.Map<Message>(messageForCreationDto);
-
-            _messageRepo.Add<Message>(message);
-
-            if (await _messageRepo.SaveAll())
+            catch (NotFoundException)
             {
-                var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
-                return CreatedAtRoute("GetMessage", new { userId, id = message.Id }, messageToReturn);
+                return NotFound("User not found.");
             }
-
-            throw new Exception("Creating message failed on save");
+            catch (SaveDataException)
+            {
+                return Problem("Error occured during saving process.");
+            }
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
         [HttpGet]
@@ -85,19 +84,21 @@ namespace date_app.Controllers
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
             {
                 return Unauthorized();
+            }    
+            try
+            {
+                (IEnumerable<MessageToReturnDto> messages, PagedList<Message> messagesFromRepo) 
+                    = await _messageService.GetMessagesForUser(userId, messageParams);
+
+                Response.AddPagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize,
+                    messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
+
+                return Ok(messages);
             }
-
-            messageParams.UserId = userId;
-
-            var messagesFromRepo = await _messageRepo.GetMessagesForUser(messageParams);
-
-            var messages = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
-
-
-            Response.AddPagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize,
-                messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
-
-            return Ok(messages);
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
         [HttpGet("thread/{recipientId}")]
@@ -108,11 +109,15 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messagesFromRepo = await _messageRepo.GetMessageThread(userId, recipientId);
-
-            var messageThread = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
-
-            return Ok(messageThread);
+            try
+            {
+                var thread = await _messageService.GetMessageThread(userId, recipientId);
+                return Ok(thread);
+            }
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
         [HttpPost("{id}")]
@@ -123,27 +128,19 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var messageFromRepo = await _messageRepo.GetMessage(id);
-            if (messageFromRepo.SenderId == userId)
+            try
             {
-                messageFromRepo.SenderDeleted = true;
-            }
-            if (messageFromRepo.RecipientId == userId)
-            {
-                messageFromRepo.RecipientDeleted = true;
-            }
-
-            if(messageFromRepo.SenderDeleted && messageFromRepo.RecipientDeleted)
-            {
-                _messageRepo.Delete(messageFromRepo);
-            }
-
-            if(await _messageRepo.SaveAll())
-            {
+                await _messageService.DeleteMessage(id, userId);
                 return NoContent();
             }
-
-            throw new Exception("Error deleting a method");
+            catch (SaveDataException)
+            {
+                return Problem("Error occured during saving process.");
+            }
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
 
         [HttpPost("{id}/read")]
@@ -154,18 +151,24 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var message = await _messageRepo.GetMessage(id);
-            if(message.RecipientId != userId)
+            try
             {
-                return Unauthorized();
+                await _messageService.MarkMessageAsRead(userId, id);
+                return NoContent();
+
             }
-
-            message.IsRead = true;
-            message.DateRead = DateTime.Now;
-
-            await _messageRepo.SaveAll();
-
-            return NoContent();
+            catch (NotFoundException)
+            {
+                return NotFound("Failed to make message as read. Invalid recipient.");
+            }
+            catch (SaveDataException)
+            {
+                return Problem("Error occured during saving process.");
+            }
+            catch
+            {
+                return Problem("Internal server error.");
+            }
         }
     }
 }
