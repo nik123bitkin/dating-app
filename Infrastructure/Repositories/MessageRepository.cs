@@ -1,18 +1,21 @@
-﻿using AppCore.Entities;
-using AppCore.HelperEntities;
-using Infrastructure.Context;
-using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AppCore.Entities;
+using AppCore.HelperEntities;
+using AppCore.Interfaces;
+using Infrastructure.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
     public class MessageRepository : DataRepository<Message>, IMessageRepository
     {
-        public MessageRepository(DataContext context) : base(context)
-        { }
+        public MessageRepository(DataContext context)
+            : base(context)
+        {
+        }
+
         public async Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams)
         {
             var messages = _context.Messages
@@ -22,23 +25,17 @@ namespace Infrastructure.Repositories
                 .ThenInclude(p => p.Photos)
                 .AsQueryable();
 
-            switch (messageParams.MessageContainer)
+            messages = messageParams.MessageContainer switch
             {
-                case "Inbox":
-                    messages = messages.Where(u => u.RecipientId == messageParams.UserId && u.RecipientDeleted == false);
-                    break;
-                case "Outbox":
-                    messages = messages.Where(u => u.SenderId == messageParams.UserId && u.SenderDeleted == false);
-                    break;
-                default:
-                    messages = messages.Where(u => u.RecipientId == messageParams.UserId && u.RecipientDeleted == false && u.IsRead == false);
-                    break;
-            }
-
+                "Inbox" => messages.Where(u => u.RecipientId == messageParams.UserId && u.RecipientDeleted == false),
+                "Outbox" => messages.Where(u => u.SenderId == messageParams.UserId && u.SenderDeleted == false),
+                _ => messages.Where(u => u.RecipientId == messageParams.UserId && u.RecipientDeleted == false && u.IsRead == false),
+            };
             messages = messages.OrderByDescending(d => d.MessageSent);
 
             return await PagedList<Message>.CreateAsunc(messages, messageParams.PageNumber, messageParams.PageSize);
         }
+
         public async Task<IEnumerable<Message>> GetMessageThread(int userId, int recipientId)
         {
             var messages = await _context.Messages
@@ -46,8 +43,8 @@ namespace Infrastructure.Repositories
                 .ThenInclude(p => p.Photos)
                 .Include(u => u.Recipient)
                 .ThenInclude(p => p.Photos)
-                .Where(m => m.RecipientId == userId && m.RecipientDeleted == false && m.SenderId == recipientId ||
-                    m.RecipientId == recipientId && m.SenderDeleted == false && m.SenderId == userId)
+                .Where(m => (m.RecipientId == userId && m.RecipientDeleted == false && m.SenderId == recipientId) ||
+                    (m.RecipientId == recipientId && m.SenderDeleted == false && m.SenderId == userId))
                 .OrderByDescending(m => m.MessageSent)
                 .ToListAsync();
 

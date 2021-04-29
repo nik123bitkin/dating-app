@@ -1,8 +1,8 @@
-﻿using AppCore.DTOs;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AppCore.DTOs;
 using AppCore.Entities;
 using AppCore.HelperEntities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace AppCore.Interfaces
 {

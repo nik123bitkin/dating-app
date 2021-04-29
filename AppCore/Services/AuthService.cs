@@ -1,19 +1,17 @@
-﻿using AppCore.DTOs;
-using AppCore.Entities;
-using AppCore.Exceptions;
-using AppCore.Interfaces;
-using AutoMapper;
-using Infrastructure.Interfaces;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AppCore.DTOs;
+using AppCore.Entities;
+using AppCore.Exceptions;
+using AppCore.Interfaces;
+using AutoMapper;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
-namespace Infrastructure.Services
+namespace AppCore.Services
 {
     public class AuthService : IAuthService
     {
@@ -27,6 +25,7 @@ namespace Infrastructure.Services
             _config = config;
             _mapper = mapper;
         }
+
         public async Task<object> Login(UserForLoginDto userForLoginDto)
         {
             var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);

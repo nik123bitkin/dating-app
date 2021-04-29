@@ -4,6 +4,8 @@ namespace AppCore.Exceptions
 {
     public class AlreadyExistsException : Exception
     {
-        public AlreadyExistsException() { }
+        public AlreadyExistsException()
+        {
+        }
     }
 }

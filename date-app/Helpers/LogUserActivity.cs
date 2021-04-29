@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using AppCore.Interfaces;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace date_app.Helpers
 {
@@ -15,7 +14,7 @@ namespace date_app.Helpers
             var userId = int.Parse(resultContext.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
             var userService = resultContext.HttpContext.RequestServices.GetService<IUserService>();
-            
+
             await userService.LogActivity(userId);
         }
     }

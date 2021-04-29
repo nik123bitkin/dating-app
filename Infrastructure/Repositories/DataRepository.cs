@@ -1,14 +1,16 @@
-﻿using Infrastructure.Context;
-using Infrastructure.Interfaces;
+﻿using System.Threading.Tasks;
+using AppCore.Interfaces;
+using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class DataRepository<T> : IDataRepository<T> where T: class
+    public class DataRepository<T> : IDataRepository<T>
+        where T : class
     {
         protected readonly DataContext _context;
         protected readonly DbSet<T> _dbSet;
+
         public DataRepository(DataContext context)
         {
             _context = context;

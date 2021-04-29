@@ -1,9 +1,11 @@
+using System.Net;
+using System.Text;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
+using AppCore.Services;
 using AutoMapper;
 using date_app.Helpers;
 using Infrastructure.Context;
-using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,8 +19,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using System.Net;
-using System.Text;
 
 namespace date_app
 {
@@ -31,7 +31,6 @@ namespace date_app
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
@@ -39,7 +38,7 @@ namespace date_app
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
-            // In production, the Angular files will be served from this directory
+
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";
@@ -54,9 +53,7 @@ namespace date_app
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
 
-            //services.AddAutoMapper(typeof(DatingRepository).Assembly);
             services.AddScoped<IAuthRepository, AuthRepository>();
-            //services.AddScoped<IDataRepository, DataRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IPhotoRepository, PhotoRepository>();
@@ -65,6 +62,7 @@ namespace date_app
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IMessageService, MessageService>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -73,35 +71,19 @@ namespace date_app
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
                         ValidateIssuer = false,
                         ValidateAudience = false
-                    }
-                );
+                    });
             services.AddScoped<LogUserActivity>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseExceptionHandler(builder =>
-                //{
-                //    builder.Run(async context =>
-                //    {
-                //        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-                //        var error = context.Features.Get<IExceptionHandlerFeature>();
-                //        if (error != null)
-                //        {
-                //            context.Response.AddApplicationError(error.Error.Message);
-                //            await context.Response.WriteAsync(error.Error.Message);
-                //        }
-                //    });
-                //});
             }
             else
             {
-                app.UseExceptionHandler(builder => 
+                app.UseExceptionHandler(builder =>
                 {
                     builder.Run(async context =>
                     {
@@ -115,11 +97,9 @@ namespace date_app
                         }
                     });
                 });
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
-            //app.UseHttpsRedirection();
             app.UseStaticFiles();
             if (!env.IsDevelopment())
             {
@@ -142,9 +122,6 @@ namespace date_app
 
             app.UseSpa(spa =>
             {
-                // To learn more about options for serving an Angular SPA from ASP.NET Core,
-                // see https://go.microsoft.com/fwlink/?linkid=864501
-
                 spa.Options.SourcePath = "ClientApp";
 
                 if (env.IsDevelopment())

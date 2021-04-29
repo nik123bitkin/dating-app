@@ -1,12 +1,14 @@
 ﻿using AppCore.Entities;
+using AppCore.Interfaces;
 using Infrastructure.Context;
-using Infrastructure.Interfaces;
 
 namespace Infrastructure.Repositories
 {
     public class LikeRepository : DataRepository<Like>, ILikeRepository
     {
-        public LikeRepository(DataContext context) : base(context)
-        { }
+        public LikeRepository(DataContext context)
+            : base(context)
+        {
+        }
     }
 }

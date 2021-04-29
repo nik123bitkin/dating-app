@@ -56,3 +56,6 @@ dotnet_diagnostic.SA1601.severity = none
 
 # SA1401: Fields should be private
 dotnet_diagnostic.SA1401.severity = none
+
+
+dotnet_diagnostic.SA0001.severity = none

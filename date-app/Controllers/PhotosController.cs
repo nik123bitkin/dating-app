@@ -1,36 +1,23 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using CloudinaryDotNet;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
 using AppCore.DTOs;
-using System.Security.Claims;
-using CloudinaryDotNet.Actions;
-using System.Linq;
-using AppCore.Entities;
-using AppCore.HelperEntities;
-using Infrastructure.Interfaces;
-using AppCore.Interfaces;
 using AppCore.Exceptions;
+using AppCore.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace date_app.Controllers
 {
     [Authorize]
     [Route("api/users/{userId}/photos")]
     [ApiController]
-    public class PhotosController: ControllerBase
+    public class PhotosController : ControllerBase
     {
         private readonly IPhotoService _photoService;
-        //private readonly IUserRepository _userRepo;
-        //private readonly IMapper _mapper;
-        //private readonly IOptions<CloudinarySettings> _cloudinarySettings;
-        //private Cloudinary _cloudinary;
 
         public PhotosController(IPhotoService photoService)
         {
             _photoService = photoService;
-            //_mapper = mapper;           
         }
 
         [HttpGet("{id}", Name = "GetPhoto")]
@@ -42,8 +29,7 @@ namespace date_app.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPhotoForUser(int userId, 
-            [FromForm]PhotoForCreationDto photoForCreationDto)
+        public async Task<IActionResult> AddPhotoForUser(int userId, [FromForm]PhotoForCreationDto photoForCreationDto)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
             {
@@ -53,11 +39,7 @@ namespace date_app.Controllers
             try
             {
                 var photo = await _photoService.AddForUser(userId, photoForCreationDto);
-                return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photo);
-            }
-            catch (SaveDataException)
-            {
-                return Problem("Couldn't add photo");
+                return CreatedAtRoute("GetPhoto", new { userId, id = photo.Id }, photo);
             }
             catch
             {
@@ -84,11 +66,7 @@ namespace date_app.Controllers
             }
             catch (AlreadyExistsException)
             {
-                return Conflict("This is a main photo already");
-            }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
+                return Ok("This is a main photo already");
             }
             catch
             {
@@ -115,17 +93,12 @@ namespace date_app.Controllers
             }
             catch (ForbiddenActionException)
             {
-                return Conflict("You cannot delete your main photo");
-            }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
+                return Forbid("You cannot delete your main photo");
             }
             catch
             {
                 return Problem("Internal server error.");
             }
         }
-
     }
 }

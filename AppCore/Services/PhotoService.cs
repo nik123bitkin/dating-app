@@ -1,66 +1,33 @@
-﻿using AppCore.DTOs;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using AppCore.DTOs;
 using AppCore.Entities;
 using AppCore.Exceptions;
-using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AutoMapper;
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
-using Infrastructure.Interfaces;
-using Microsoft.Extensions.Options;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Services
+namespace AppCore.Services
 {
     public class PhotoService : IPhotoService
     {
         private readonly IPhotoRepository _photoRepo;
         private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        private readonly IOptions<CloudinarySettings> _cloudinarySettings;
-        private Cloudinary _cloudinary;
-
-        public PhotoService(IPhotoRepository photoRepo, IUserRepository userRepo, IMapper mapper,
-            IOptions<CloudinarySettings> cloudinarySettings)
+        public PhotoService(IPhotoRepository photoRepo, IUserRepository userRepo, IMapper mapper, ICloudinaryService cloudinaryService)
         {
             _photoRepo = photoRepo;
             _userRepo = userRepo;
             _mapper = mapper;
-            _cloudinarySettings = cloudinarySettings;
-
-            Account acc = new Account(
-                _cloudinarySettings.Value.CloudName,
-                _cloudinarySettings.Value.ApiKey,
-                _cloudinarySettings.Value.ApiSecret
-            );
-
-            _cloudinary = new Cloudinary(acc);
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<PhotoForReturnDto> AddForUser(int userId, PhotoForCreationDto photoForCreationDto)
         {
             var userFromRepo = await _userRepo.GetUser(userId);
 
-            var file = photoForCreationDto.File;
-
-            var uploadResult = new ImageUploadResult();
-
-            if (file.Length > 0)
-            {
-                using (var stream = file.OpenReadStream())
-                {
-                    var uploadParams = new ImageUploadParams()
-                    {
-                        File = new FileDescription(file.Name, stream),
-                        Transformation = new Transformation().Width(500).Height(500).Crop("fill").Gravity("face")
-                    };
-
-                    uploadResult = _cloudinary.Upload(uploadParams);
-                }
-            }
+            var uploadResult = _cloudinaryService.UploadImage(photoForCreationDto);
 
             photoForCreationDto.Url = uploadResult.Url.OriginalString;
             photoForCreationDto.PublicId = uploadResult.PublicId;
@@ -77,12 +44,10 @@ namespace Infrastructure.Services
                 await _photoRepo.SaveAll();
                 var photoForReturn = _mapper.Map<PhotoForReturnDto>(photo);
                 return photoForReturn;
-                //return CreatedAtRoute("GetPhoto", new { userId = userId, id = photo.Id }, photoForReturn);
-                
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
 
@@ -103,9 +68,7 @@ namespace Infrastructure.Services
 
             if (photoFromRepo.PublicId != null)
             {
-                var deleteParams = new DeletionParams(photoFromRepo.PublicId);
-
-                var result = _cloudinary.Destroy(deleteParams);
+                var result = _cloudinaryService.DeleteImage(photoFromRepo);
 
                 if (result.Result == "ok")
                 {
@@ -124,7 +87,7 @@ namespace Infrastructure.Services
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
 
@@ -162,7 +125,7 @@ namespace Infrastructure.Services
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
     }

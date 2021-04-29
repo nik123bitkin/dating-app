@@ -1,12 +1,16 @@
 ﻿using System.Threading.Tasks;
 
-namespace Infrastructure.Interfaces
+namespace AppCore.Interfaces
 {
-    public interface IDataRepository<T> where T: class
+    public interface IDataRepository<T>
+        where T : class
     {
         void Add(T entity);
+
         void Delete(T entity);
+
         Task<T> GetById(object id);
+
         Task<bool> SaveAll();
     }
 }

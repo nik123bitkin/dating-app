@@ -1,15 +1,14 @@
-﻿using AppCore.DTOs;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AppCore.DTOs;
 using AppCore.Entities;
 using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AutoMapper;
-using Infrastructure.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Services
+namespace AppCore.Services
 {
     public class MessageService : IMessageService
     {
@@ -42,11 +41,11 @@ namespace Infrastructure.Services
             {
                 await _messageRepo.SaveAll();
                 var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
-                return messageToReturn;               
+                return messageToReturn;
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
 
@@ -57,6 +56,7 @@ namespace Infrastructure.Services
             {
                 messageFromRepo.SenderDeleted = true;
             }
+
             if (messageFromRepo.RecipientId == userId)
             {
                 messageFromRepo.RecipientDeleted = true;
@@ -73,7 +73,7 @@ namespace Infrastructure.Services
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
 
@@ -125,7 +125,7 @@ namespace Infrastructure.Services
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
     }
