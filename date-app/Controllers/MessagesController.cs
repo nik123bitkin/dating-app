@@ -65,10 +65,6 @@ namespace date_app.Controllers
             {
                 return NotFound("User not found.");
             }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
-            }
             catch
             {
                 return Problem("Internal server error.");
@@ -89,8 +85,8 @@ namespace date_app.Controllers
                     = await _messageService.GetMessagesForUser(userId, messageParams);
 
                 var pagination = new Pagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
-
-                return Ok(new { data = messages, pagination });
+                var paginatedResponse = new PaginatedResponse<MessageToReturnDto>(messages, pagination);
+                return Ok(paginatedResponse);
             }
             catch
             {
@@ -130,10 +126,6 @@ namespace date_app.Controllers
                 await _messageService.DeleteMessage(id, userId);
                 return NoContent();
             }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
-            }
             catch
             {
                 return Problem("Internal server error.");
@@ -156,10 +148,6 @@ namespace date_app.Controllers
             catch (NotFoundException)
             {
                 return NotFound("Failed to make message as read. Invalid recipient.");
-            }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
             }
             catch
             {

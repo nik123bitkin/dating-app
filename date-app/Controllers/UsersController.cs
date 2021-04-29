@@ -32,8 +32,9 @@ namespace date_app.Controllers
 
             (PagedList<User> usersForPaging, IEnumerable<UserForListDto> usersToReturn) = await _userService.GetUsers(currentUserId, userParams);
             var pagination = new Pagination(usersForPaging.CurrentPage, usersForPaging.PageSize, usersForPaging.TotalCount, usersForPaging.TotalPages);
+            var paginatedResponse = new PaginatedResponse<UserForListDto>(usersToReturn, pagination);
 
-            return Ok(new { data = usersToReturn, pagination });
+            return Ok(paginatedResponse);
         }
 
         [HttpGet("{id}", Name ="GetUser")]
@@ -56,10 +57,6 @@ namespace date_app.Controllers
             {
                 await _userService.UpdateUser(id, userForUpdateDto);
                 return NoContent();
-            }
-            catch (SaveDataException)
-            {
-                return Problem($"Updating user with {id} failed on save");
             }
             catch
             {
@@ -87,10 +84,6 @@ namespace date_app.Controllers
             catch (NotFoundException)
             {
                 return NotFound("Failed to like user. Recipient not found");
-            }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
             }
             catch
             {

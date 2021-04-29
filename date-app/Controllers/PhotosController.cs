@@ -41,10 +41,6 @@ namespace date_app.Controllers
                 var photo = await _photoService.AddForUser(userId, photoForCreationDto);
                 return CreatedAtRoute("GetPhoto", new { userId, id = photo.Id }, photo);
             }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
-            }
             catch
             {
                 return Problem("Internal server error.");
@@ -72,10 +68,6 @@ namespace date_app.Controllers
             {
                 return Ok("This is a main photo already");
             }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
-            }
             catch
             {
                 return Problem("Internal server error.");
@@ -102,10 +94,6 @@ namespace date_app.Controllers
             catch (ForbiddenActionException)
             {
                 return Forbid("You cannot delete your main photo");
-            }
-            catch (SaveDataException)
-            {
-                return Problem("Error occured during saving process.");
             }
             catch
             {

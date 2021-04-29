@@ -45,7 +45,7 @@ namespace AppCore.Services
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
 
@@ -73,7 +73,7 @@ namespace AppCore.Services
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
 
@@ -125,7 +125,7 @@ namespace AppCore.Services
             }
             catch
             {
-                throw new SaveDataException();
+                throw;
             }
         }
     }
