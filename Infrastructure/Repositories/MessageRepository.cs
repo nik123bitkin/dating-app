@@ -20,9 +20,9 @@ namespace Infrastructure.Repositories
         {
             var messages = _context.Messages
                 .Include(u => u.Sender)
-                .ThenInclude(p => p.Photos)
+                .ThenInclude(p => p.Photos.Where(p => p.IsMain))
                 .Include(u => u.Recipient)
-                .ThenInclude(p => p.Photos)
+                .ThenInclude(p => p.Photos.Where(p => p.IsMain))
                 .AsQueryable();
 
             messages = messageParams.MessageContainer switch
@@ -40,9 +40,9 @@ namespace Infrastructure.Repositories
         {
             var messages = await _context.Messages
                 .Include(u => u.Sender)
-                .ThenInclude(p => p.Photos)
+                .ThenInclude(p => p.Photos.Where(p => p.IsMain))
                 .Include(u => u.Recipient)
-                .ThenInclude(p => p.Photos)
+                .ThenInclude(p => p.Photos.Where(p => p.IsMain))
                 .Where(m => (m.RecipientId == userId && m.RecipientDeleted == false && m.SenderId == recipientId) ||
                     (m.RecipientId == recipientId && m.SenderDeleted == false && m.SenderId == userId))
                 .OrderByDescending(m => m.MessageSent)

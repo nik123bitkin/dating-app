@@ -7,6 +7,7 @@ using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using Z.EntityFramework.Plus;
 
 namespace Infrastructure.Repositories
 {
@@ -30,7 +31,7 @@ namespace Infrastructure.Repositories
 
         public async Task<PagedList<User>> GetUsersAsync(UserParams userParams)
         {
-            var users = _context.Users.Include(p => p.Photos).OrderByDescending(u => u.LastActive).AsQueryable();
+            var users = _context.Users.IncludeFilter(p => p.Photos.Where(p => p.IsMain)).OrderByDescending(u => u.LastActive).AsQueryable();
 
             users = users.Where(u => u.Id != userParams.UserId).Where(u => u.Gender == userParams.Gender);
 

@@ -1,18 +1,16 @@
 using System.Text;
-using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AppCore.Services;
 using AutoMapper;
 using date_app.Helpers;
+using date_app.Middleware;
 using Infrastructure.Context;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -80,39 +78,13 @@ namespace date_app
             if (env.IsDevelopment())
             {
                 // app.UseDeveloperExceptionPage();
-                app.UseExceptionHandler(c => c.Run(async context =>
-                {
-                    var exception = context.Features
-                        .Get<IExceptionHandlerPathFeature>()
-                        .Error;
-                    if ((exception is AlreadyExistsException) || (exception is NotFoundException) || (exception is ForbiddenActionException))
-                    {
-                        await context.Response.WriteAsync(exception.Message);
-                    }
-                    else
-                    {
-                        await context.Response.WriteAsync("Internal server error.");
-                    }
-                }));
             }
             else
             {
-                app.UseExceptionHandler(c => c.Run(async context =>
-                {
-                    var exception = context.Features
-                        .Get<IExceptionHandlerPathFeature>()
-                        .Error;
-                    if ((exception is AlreadyExistsException) || (exception is NotFoundException) || (exception is ForbiddenActionException))
-                    {
-                        await context.Response.WriteAsync(exception.Message);
-                    }
-                    else
-                    {
-                        await context.Response.WriteAsync("Internal server error.");
-                    }
-                }));
                 app.UseHsts();
             }
+
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseStaticFiles();
             if (!env.IsDevelopment())
