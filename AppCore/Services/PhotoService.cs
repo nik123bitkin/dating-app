@@ -23,57 +23,48 @@ namespace AppCore.Services
             _cloudinaryService = cloudinaryService;
         }
 
-        public async Task<PhotoForReturnDto> AddForUser(int userId, PhotoForCreationDto photoForCreationDto)
+        public async Task<PhotoForReturnDto> AddForUserAsync(int userId, PhotoForCreationDto photoForCreationDto)
         {
-            var userFromRepo = await _userRepo.GetUser(userId);
-
-            var uploadResult = _cloudinaryService.UploadImage(photoForCreationDto);
-
-            photoForCreationDto.Url = uploadResult.Url.OriginalString;
-            photoForCreationDto.PublicId = uploadResult.PublicId;
+            // var userFromRepo = await _userRepo.GetByIdAsync(userId);
+            _cloudinaryService.UploadImage(photoForCreationDto);
 
             var photo = _mapper.Map<Photo>(photoForCreationDto);
-            if (!userFromRepo.Photos.Any(u => u.IsMain))
+            photo.UserId = userId;
+
+            var mainPhoto = _photoRepo.GetMainPhotoForUserAsync(userId);
+            if (mainPhoto == null)
             {
                 photo.IsMain = true;
             }
 
-            userFromRepo.Photos.Add(photo);
-            try
-            {
-                await _photoRepo.SaveAll();
-                var photoForReturn = _mapper.Map<PhotoForReturnDto>(photo);
-                return photoForReturn;
-            }
-            catch
-            {
-                throw;
-            }
+            _photoRepo.Add(photo);
+
+            // userFromRepo.Photos.Add(photo);
+            await _photoRepo.SaveAllAsync();
+            var photoForReturn = _mapper.Map<PhotoForReturnDto>(photo);
+            return photoForReturn;
         }
 
-        public async Task DeleteForUser(int userId, int id)
+        public async Task DeleteForUserAsync(int userId, int id)
         {
-            var userFromRepo = await _userRepo.GetUser(userId);
+            var userFromRepo = await _userRepo.GetByIdAsync(userId);
 
             if (!userFromRepo.Photos.Any(p => p.Id == id))
             {
-                throw new NotFoundException();
+                throw new NotFoundException("Failed to delete photo. Photo with such ID not found.");
             }
 
-            var photoFromRepo = await _photoRepo.GetById(id);
+            var photoFromRepo = await _photoRepo.GetByIdAsync(id);
             if (photoFromRepo.IsMain)
             {
-                throw new ForbiddenActionException();
+                throw new ForbiddenActionException("Unable to delete main photo.");
             }
 
             if (photoFromRepo.PublicId != null)
             {
-                var result = _cloudinaryService.DeleteImage(photoFromRepo);
+                _cloudinaryService.DeleteImage(photoFromRepo);
 
-                if (result.Result == "ok")
-                {
-                    _photoRepo.Delete(photoFromRepo);
-                }
+                _photoRepo.Delete(photoFromRepo);
             }
 
             if (photoFromRepo.PublicId == null)
@@ -81,52 +72,38 @@ namespace AppCore.Services
                 _photoRepo.Delete(photoFromRepo);
             }
 
-            try
-            {
-                await _photoRepo.SaveAll();
-            }
-            catch
-            {
-                throw;
-            }
+            await _photoRepo.SaveAllAsync();
         }
 
-        public async Task<PhotoForReturnDto> GetPhoto(int id)
+        public async Task<PhotoForReturnDto> GetPhotoAsync(int id)
         {
-            var photoFromRepo = await _photoRepo.GetById(id);
+            var photoFromRepo = await _photoRepo.GetByIdAsync(id);
 
             var photo = _mapper.Map<PhotoForReturnDto>(photoFromRepo);
 
             return photo;
         }
 
-        public async Task SetAsMain(int userId, int id)
+        public async Task SetAsMainAsync(int userId, int id)
         {
-            var userFromRepo = await _userRepo.GetUser(userId);
+            var userFromRepo = await _userRepo.GetUserAsync(userId);
 
             if (!userFromRepo.Photos.Any(p => p.Id == id))
             {
-                throw new NotFoundException();
+                throw new NotFoundException("Failed to set main photo. Photo with such ID not found.");
             }
 
-            var photoFromRepo = await _photoRepo.GetById(id);
+            var photoFromRepo = await _photoRepo.GetByIdAsync(id);
             if (photoFromRepo.IsMain)
             {
-                throw new AlreadyExistsException();
+                throw new AlreadyExistsException("Failed to set main photo. This photo is main already.");
             }
 
-            var currentMainPhoto = await _photoRepo.GetMainPhotoForUser(userId);
+            var currentMainPhoto = await _photoRepo.GetMainPhotoForUserAsync(userId);
             currentMainPhoto.IsMain = false;
             photoFromRepo.IsMain = true;
 
-            try
-            {
-                await _photoRepo.SaveAll();
-            }
-            catch
-            {
-                throw;
-            }
+            await _photoRepo.SaveAllAsync();
         }
     }
 }

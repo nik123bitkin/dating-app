@@ -14,7 +14,7 @@ namespace Infrastructure.Repositories
         {
         }
 
-        public async Task<Photo> GetMainPhotoForUser(int userId)
+        public async Task<Photo> GetMainPhotoForUserAsync(int userId)
         {
             return await _context.Photos.Where(u => u.UserId == userId)
                 .FirstOrDefaultAsync(p => p.IsMain);

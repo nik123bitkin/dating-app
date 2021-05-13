@@ -16,7 +16,7 @@ namespace Infrastructure.Repositories
         {
         }
 
-        public async Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams)
+        public async Task<PagedList<Message>> GetMessagesForUserAsync(MessageParams messageParams)
         {
             var messages = _context.Messages
                 .Include(u => u.Sender)
@@ -33,10 +33,10 @@ namespace Infrastructure.Repositories
             };
             messages = messages.OrderByDescending(d => d.MessageSent);
 
-            return await PagedList<Message>.CreateAsunc(messages, messageParams.PageNumber, messageParams.PageSize);
+            return await PagedList<Message>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
         }
 
-        public async Task<IEnumerable<Message>> GetMessageThread(int userId, int recipientId)
+        public async Task<IEnumerable<Message>> GetMessageThreadAsync(int userId, int recipientId)
         {
             var messages = await _context.Messages
                 .Include(u => u.Sender)

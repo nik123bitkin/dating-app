@@ -1,5 +1,5 @@
-using System.Net;
 using System.Text;
+using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using AppCore.Services;
@@ -79,24 +79,38 @@ namespace date_app
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                // app.UseDeveloperExceptionPage();
+                app.UseExceptionHandler(c => c.Run(async context =>
+                {
+                    var exception = context.Features
+                        .Get<IExceptionHandlerPathFeature>()
+                        .Error;
+                    if ((exception is AlreadyExistsException) || (exception is NotFoundException) || (exception is ForbiddenActionException))
+                    {
+                        await context.Response.WriteAsync(exception.Message);
+                    }
+                    else
+                    {
+                        await context.Response.WriteAsync("Internal server error.");
+                    }
+                }));
             }
             else
             {
-                app.UseExceptionHandler(builder =>
+                app.UseExceptionHandler(c => c.Run(async context =>
                 {
-                    builder.Run(async context =>
+                    var exception = context.Features
+                        .Get<IExceptionHandlerPathFeature>()
+                        .Error;
+                    if ((exception is AlreadyExistsException) || (exception is NotFoundException) || (exception is ForbiddenActionException))
                     {
-                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-                        var error = context.Features.Get<IExceptionHandlerFeature>();
-                        if (error != null)
-                        {
-                            context.Response.AddApplicationError(error.Error.Message);
-                            await context.Response.WriteAsync(error.Error.Message);
-                        }
-                    });
-                });
+                        await context.Response.WriteAsync(exception.Message);
+                    }
+                    else
+                    {
+                        await context.Response.WriteAsync("Internal server error.");
+                    }
+                }));
                 app.UseHsts();
             }
 

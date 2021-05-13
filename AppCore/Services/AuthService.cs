@@ -26,13 +26,13 @@ namespace AppCore.Services
             _mapper = mapper;
         }
 
-        public async Task<object> Login(UserForLoginDto userForLoginDto)
+        public async Task<object> LoginAsync(UserForLoginDto userForLoginDto)
         {
-            var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
+            var userFromRepo = await _repo.LoginAsync(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
 
             if (userFromRepo == null)
             {
-                throw new NotFoundException();
+                throw new NotFoundException("Invalid login or password. User not found.");
             }
 
             var claims = new[]
@@ -67,20 +67,21 @@ namespace AppCore.Services
                 };
         }
 
-        public async Task<UserForDetailedDTO> Register(UserForRegisterDto userForRegisterDto)
+        public async Task<UserForDetailedDto> RegisterAsync(UserForRegisterDto userForRegisterDto)
         {
             userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
 
-            if (await _repo.UserExists(userForRegisterDto.Username))
+            var exists = await _repo.UserExistsAsync(userForRegisterDto.Username);
+            if (exists)
             {
-                throw new AlreadyExistsException();
+                throw new AlreadyExistsException("User with such username already exists.");
             }
 
             var userToCreate = _mapper.Map<User>(userForRegisterDto);
 
-            var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
+            var createdUser = await _repo.RegisterAsync(userToCreate, userForRegisterDto.Password);
 
-            var userToReturn = _mapper.Map<UserForDetailedDTO>(createdUser);
+            var userToReturn = _mapper.Map<UserForDetailedDto>(createdUser);
 
             return userToReturn;
         }

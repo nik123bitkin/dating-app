@@ -27,12 +27,12 @@ namespace Infrastructure.Repositories
             _dbSet.Remove(entity);
         }
 
-        public async Task<T> GetById(object id)
+        public async Task<T> GetByIdAsync(object id)
         {
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<bool> SaveAll()
+        public async Task<bool> SaveAllAsync()
         {
             return await _context.SaveChangesAsync() > 0;
         }

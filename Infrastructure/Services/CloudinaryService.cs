@@ -25,34 +25,43 @@ namespace Infrastructure.Services
             _cloudinary = new Cloudinary(acc);
         }
 
-        public DeletionResult DeleteImage(Photo photoForDelete)
+        public void DeleteImage(Photo photoForDelete)
         {
             var deleteParams = new DeletionParams(photoForDelete.PublicId);
 
-            return _cloudinary.Destroy(deleteParams);
+            var result = _cloudinary.Destroy(deleteParams);
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new System.Exception("Cloudinary service failed to delete the image");
+            }
         }
 
-        public ImageUploadResult UploadImage(PhotoForCreationDto photoForCreationDto)
+        public void UploadImage(PhotoForCreationDto photoForCreationDto)
         {
             var file = photoForCreationDto.File;
 
-            var uploadResult = new ImageUploadResult();
-
             if (file.Length > 0)
             {
-                using (var stream = file.OpenReadStream())
+                using var stream = file.OpenReadStream();
+                var uploadParams = new ImageUploadParams()
                 {
-                    var uploadParams = new ImageUploadParams()
-                    {
-                        File = new FileDescription(file.Name, stream),
-                        Transformation = new Transformation().Width(500).Height(500).Crop("fill").Gravity("face")
-                    };
+                    File = new FileDescription(file.Name, stream),
+                    Transformation = new Transformation().Width(500).Height(500).Crop("fill").Gravity("face")
+                };
 
-                    uploadResult = _cloudinary.Upload(uploadParams);
+                var uploadResult = _cloudinary.Upload(uploadParams);
+
+                if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    photoForCreationDto.Url = uploadResult.Url.OriginalString;
+                    photoForCreationDto.PublicId = uploadResult.PublicId;
+                }
+                else
+                {
+                    throw new System.Exception("Cloudinary service failed to upload the image");
                 }
             }
-
-            return uploadResult;
         }
     }
 }
