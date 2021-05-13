@@ -25,7 +25,6 @@ namespace AppCore.Services
 
         public async Task<PhotoForReturnDto> AddForUserAsync(int userId, PhotoForCreationDto photoForCreationDto)
         {
-            // var userFromRepo = await _userRepo.GetByIdAsync(userId);
             _cloudinaryService.UploadImage(photoForCreationDto);
 
             var photo = _mapper.Map<Photo>(photoForCreationDto);
@@ -38,9 +37,8 @@ namespace AppCore.Services
             }
 
             _photoRepo.Add(photo);
-
-            // userFromRepo.Photos.Add(photo);
             await _photoRepo.SaveAllAsync();
+
             var photoForReturn = _mapper.Map<PhotoForReturnDto>(photo);
             return photoForReturn;
         }
@@ -63,14 +61,9 @@ namespace AppCore.Services
             if (photoFromRepo.PublicId != null)
             {
                 _cloudinaryService.DeleteImage(photoFromRepo);
-
-                _photoRepo.Delete(photoFromRepo);
             }
 
-            if (photoFromRepo.PublicId == null)
-            {
-                _photoRepo.Delete(photoFromRepo);
-            }
+            _photoRepo.Delete(photoFromRepo);
 
             await _photoRepo.SaveAllAsync();
         }

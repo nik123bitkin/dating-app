@@ -23,10 +23,8 @@ namespace AppCore.Services
             _mapper = mapper;
         }
 
-        public async Task<MessageToReturnDto> CreateMessageAsync(int userId, MessageForCreationDto messageForCreationDto)
+        public async Task<MessageToReturnDto> CreateMessageAsync(MessageForCreationDto messageForCreationDto)
         {
-            messageForCreationDto.SenderId = userId;
-
             var recipient = await _userRepo.GetByIdAsync(messageForCreationDto.RecipientId);
             if (recipient == null)
             {
@@ -63,7 +61,7 @@ namespace AppCore.Services
             await _messageRepo.SaveAllAsync();
         }
 
-        public async Task<Message> GetMessageAsync(int userId, int id)
+        public async Task<Message> GetMessageAsync(int id)
         {
             var messageFromRepo = await _messageRepo.GetByIdAsync(id);
             if (messageFromRepo == null)
@@ -74,10 +72,8 @@ namespace AppCore.Services
             return messageFromRepo;
         }
 
-        public async Task<(IEnumerable<MessageToReturnDto>, PagedList<Message>)> GetMessagesForUserAsync(int userId, MessageParams messageParams)
+        public async Task<(IEnumerable<MessageToReturnDto>, PagedList<Message>)> GetMessagesForUserAsync(MessageParams messageParams)
         {
-            messageParams.UserId = userId;
-
             var messagesFromRepo = await _messageRepo.GetMessagesForUserAsync(messageParams);
 
             var messages = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);

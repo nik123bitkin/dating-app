@@ -32,7 +32,7 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var message = await _messageService.GetMessageAsync(userId, id);
+            var message = await _messageService.GetMessageAsync(id);
             return Ok(message);
         }
 
@@ -44,7 +44,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            var message = await _messageService.CreateMessageAsync(userId, messageForCreationDto);
+            messageForCreationDto.SenderId = userId;
+            var message = await _messageService.CreateMessageAsync(messageForCreationDto);
             return CreatedAtRoute("GetMessage", new { userId, id = message.Id }, message);
         }
 
@@ -56,8 +57,9 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
+            messageParams.UserId = userId;
             (IEnumerable<MessageToReturnDto> messages, PagedList<Message> messagesFromRepo)
-                = await _messageService.GetMessagesForUserAsync(userId, messageParams);
+                = await _messageService.GetMessagesForUserAsync(messageParams);
 
             var pagination = new Pagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
             var paginatedResponse = new PaginatedResponse<MessageToReturnDto>(messages, pagination);
