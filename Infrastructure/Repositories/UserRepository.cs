@@ -7,6 +7,7 @@ using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using Z.EntityFramework.Plus;
 
 namespace Infrastructure.Repositories
 {
@@ -17,32 +18,32 @@ namespace Infrastructure.Repositories
         {
         }
 
-        public async Task<User> GetUser(int id)
+        public async Task<User> GetUserAsync(int id)
         {
             var user = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.Id == id);
             return user;
         }
 
-        public async Task<Like> GetLike(int userId, int recipientId)
+        public async Task<Like> GetLikeAsync(int userId, int recipientId)
         {
             return await _context.Likes.FirstOrDefaultAsync(u => u.LikerId == userId && u.LikeeId == recipientId);
         }
 
-        public async Task<PagedList<User>> GetUsers(UserParams userParams)
+        public async Task<PagedList<User>> GetUsersAsync(UserParams userParams)
         {
-            var users = _context.Users.Include(p => p.Photos).OrderByDescending(u => u.LastActive).AsQueryable();
+            var users = _context.Users.IncludeFilter(p => p.Photos.Where(p => p.IsMain)).OrderByDescending(u => u.LastActive).AsQueryable();
 
             users = users.Where(u => u.Id != userParams.UserId).Where(u => u.Gender == userParams.Gender);
 
             if (userParams.Likers)
             {
-                var userLikers = await GetUserLikes(userParams.UserId, userParams.Likers);
+                var userLikers = await GetUserLikesAsync(userParams.UserId, userParams.Likers);
                 users = users.Where(u => userLikers.Contains(u.Id));
             }
 
             if (userParams.Likees)
             {
-                var userLikees = await GetUserLikes(userParams.UserId, userParams.Likers);
+                var userLikees = await GetUserLikesAsync(userParams.UserId, userParams.Likers);
                 users = users.Where(u => userLikees.Contains(u.Id));
             }
 
@@ -55,21 +56,17 @@ namespace Infrastructure.Repositories
 
             if (!string.IsNullOrEmpty(userParams.OrderBy))
             {
-                switch (userParams.OrderBy)
+                users = userParams.OrderBy switch
                 {
-                    case "created":
-                        users = users.OrderByDescending(u => u.Created);
-                        break;
-                    default:
-                        users = users.OrderByDescending(u => u.LastActive);
-                        break;
-                }
+                    "created" => users.OrderByDescending(u => u.Created),
+                    _ => users.OrderByDescending(u => u.LastActive),
+                };
             }
 
-            return await PagedList<User>.CreateAsunc(users, userParams.PageNumber, userParams.PageSize);
+            return await PagedList<User>.CreateAsync(users, userParams.PageNumber, userParams.PageSize);
         }
 
-        private async Task<IEnumerable<int>> GetUserLikes(int id, bool likers)
+        private async Task<IEnumerable<int>> GetUserLikesAsync(int id, bool likers)
         {
             var user = await _context.Users
                 .Include(u => u.Likers)

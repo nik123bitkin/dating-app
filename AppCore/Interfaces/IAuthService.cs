@@ -5,8 +5,8 @@ namespace AppCore.Interfaces
 {
     public interface IAuthService
     {
-        Task<UserForDetailedDTO> Register(UserForRegisterDto userForRegisterDto);
+        Task<UserForDetailedDto> RegisterAsync(UserForRegisterDto userForRegisterDto);
 
-        Task<object> Login(UserForLoginDto userForLoginDto);
+        Task<object> LoginAsync(UserForLoginDto userForLoginDto);
     }
 }

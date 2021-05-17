@@ -5,6 +5,6 @@ namespace AppCore.Interfaces
 {
     public interface IPhotoRepository : IDataRepository<Photo>
     {
-        Task<Photo> GetMainPhotoForUser(int userId);
+        Task<Photo> GetMainPhotoForUserAsync(int userId);
     }
 }

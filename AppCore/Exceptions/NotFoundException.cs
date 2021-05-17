@@ -7,5 +7,10 @@ namespace AppCore.Exceptions
         public NotFoundException()
         {
         }
+
+        public NotFoundException(string message)
+            : base(message)
+        {
+        }
     }
 }

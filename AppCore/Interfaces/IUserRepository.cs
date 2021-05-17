@@ -6,10 +6,10 @@ namespace AppCore.Interfaces
 {
     public interface IUserRepository : IDataRepository<User>
     {
-        Task<PagedList<User>> GetUsers(UserParams userParams);
+        Task<PagedList<User>> GetUsersAsync(UserParams userParams);
 
-        Task<User> GetUser(int id);
+        Task<User> GetUserAsync(int id);
 
-        Task<Like> GetLike(int userId, int recipientId);
+        Task<Like> GetLikeAsync(int userId, int recipientId);
     }
 }

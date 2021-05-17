@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<User> Register(User user, string password)
+        public async Task<User> RegisterAsync(User user, string password)
         {
             CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
 
@@ -28,7 +28,7 @@ namespace Infrastructure.Repositories
             return user;
         }
 
-        public async Task<User> Login(string username, string password)
+        public async Task<User> LoginAsync(string username, string password)
         {
             var user = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(x => x.Username == username);
             if (user == null)
@@ -36,22 +36,14 @@ namespace Infrastructure.Repositories
                 return null;
             }
 
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
-            {
-                return null;
-            }
+            var verifiedResult = !VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt);
 
-            return user;
+            return verifiedResult ? null : user;
         }
 
-        public async Task<bool> UserExists(string username)
+        public async Task<bool> UserExistsAsync(string username)
         {
-            if (await _context.Users.AnyAsync(x => x.Username == username))
-            {
-                return true;
-            }
-
-            return false;
+            return await _context.Users.AnyAsync(x => x.Username == username);
         }
 
         private static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
@@ -73,11 +65,9 @@ namespace Infrastructure.Repositories
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
+            using var hmac = new System.Security.Cryptography.HMACSHA512();
+            passwordSalt = hmac.Key;
+            passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
         }
     }
 }

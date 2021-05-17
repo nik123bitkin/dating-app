@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AppCore.DTOs;
 using AppCore.Entities;
-using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using date_app.Helpers;
@@ -30,7 +29,7 @@ namespace date_app.Controllers
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            (PagedList<User> usersForPaging, IEnumerable<UserForListDto> usersToReturn) = await _userService.GetUsers(currentUserId, userParams);
+            (PagedList<User> usersForPaging, IEnumerable<UserForListDto> usersToReturn) = await _userService.GetUsersAsync(currentUserId, userParams);
             var pagination = new Pagination(usersForPaging.CurrentPage, usersForPaging.PageSize, usersForPaging.TotalCount, usersForPaging.TotalPages);
             var paginatedResponse = new PaginatedResponse<UserForListDto>(usersToReturn, pagination);
 
@@ -40,7 +39,7 @@ namespace date_app.Controllers
         [HttpGet("{id}", Name ="GetUser")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = await _userService.GetUser(id);
+            var user = await _userService.GetUserAsync(id);
 
             return Ok(user);
         }
@@ -53,15 +52,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                await _userService.UpdateUser(id, userForUpdateDto);
-                return NoContent();
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            await _userService.UpdateUserAsync(id, userForUpdateDto);
+            return NoContent();
         }
 
         [HttpPost("{id}/like/{recipientId}")]
@@ -72,23 +64,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                await _userService.LikeUser(id, recipientId);
-                return Ok();
-            }
-            catch (AlreadyExistsException)
-            {
-                return Ok("You have already liked this user");
-            }
-            catch (NotFoundException)
-            {
-                return NotFound("Failed to like user. Recipient not found");
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            await _userService.LikeUserAsync(id, recipientId);
+            return Ok();
         }
     }
 }

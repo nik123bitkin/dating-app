@@ -23,35 +23,26 @@ namespace AppCore.Services
             _mapper = mapper;
         }
 
-        public async Task<MessageToReturnDto> CreateMessage(int userId, MessageForCreationDto messageForCreationDto)
+        public async Task<MessageToReturnDto> CreateMessageAsync(MessageForCreationDto messageForCreationDto)
         {
-            messageForCreationDto.SenderId = userId;
-
-            var recipient = await _userRepo.GetUser(messageForCreationDto.RecipientId);
+            var recipient = await _userRepo.GetByIdAsync(messageForCreationDto.RecipientId);
             if (recipient == null)
             {
-                throw new NotFoundException();
+                throw new NotFoundException("Invalid recepient. User with such ID not found.");
             }
 
             var message = _mapper.Map<Message>(messageForCreationDto);
 
             _messageRepo.Add(message);
 
-            try
-            {
-                await _messageRepo.SaveAll();
-                var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
-                return messageToReturn;
-            }
-            catch
-            {
-                throw;
-            }
+            await _messageRepo.SaveAllAsync();
+            var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
+            return messageToReturn;
         }
 
-        public async Task DeleteMessage(int id, int userId)
+        public async Task DeleteMessageAsync(int id, int userId)
         {
-            var messageFromRepo = await _messageRepo.GetById(id);
+            var messageFromRepo = await _messageRepo.GetByIdAsync(id);
             if (messageFromRepo.SenderId == userId)
             {
                 messageFromRepo.SenderDeleted = true;
@@ -67,66 +58,50 @@ namespace AppCore.Services
                 _messageRepo.Delete(messageFromRepo);
             }
 
-            try
-            {
-                await _messageRepo.SaveAll();
-            }
-            catch
-            {
-                throw;
-            }
+            await _messageRepo.SaveAllAsync();
         }
 
-        public async Task<Message> GetMessage(int userId, int id)
+        public async Task<Message> GetMessageAsync(int id)
         {
-            var messageFromRepo = await _messageRepo.GetById(id);
+            var messageFromRepo = await _messageRepo.GetByIdAsync(id);
             if (messageFromRepo == null)
             {
-                throw new NotFoundException();
+                throw new NotFoundException("Message not found.");
             }
 
             return messageFromRepo;
         }
 
-        public async Task<(IEnumerable<MessageToReturnDto>, PagedList<Message>)> GetMessagesForUser(int userId, MessageParams messageParams)
+        public async Task<(IEnumerable<MessageToReturnDto>, PagedList<Message>)> GetMessagesForUserAsync(MessageParams messageParams)
         {
-            messageParams.UserId = userId;
-
-            var messagesFromRepo = await _messageRepo.GetMessagesForUser(messageParams);
+            var messagesFromRepo = await _messageRepo.GetMessagesForUserAsync(messageParams);
 
             var messages = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
 
             return (messages, messagesFromRepo);
         }
 
-        public async Task<IEnumerable<MessageToReturnDto>> GetMessageThread(int userId, int recipientId)
+        public async Task<IEnumerable<MessageToReturnDto>> GetMessageThreadAsync(int userId, int recipientId)
         {
-            var messagesFromRepo = await _messageRepo.GetMessageThread(userId, recipientId);
+            var messagesFromRepo = await _messageRepo.GetMessageThreadAsync(userId, recipientId);
 
             var messageThread = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
 
             return messageThread;
         }
 
-        public async Task MarkMessageAsRead(int userId, int id)
+        public async Task MarkMessageAsReadAsync(int userId, int id)
         {
-            var message = await _messageRepo.GetById(id);
+            var message = await _messageRepo.GetByIdAsync(id);
             if (message.RecipientId != userId)
             {
-                throw new NotFoundException();
+                throw new NotFoundException("Invalid recepient. User with such ID not found.");
             }
 
             message.IsRead = true;
             message.DateRead = DateTime.Now;
 
-            try
-            {
-                await _messageRepo.SaveAll();
-            }
-            catch
-            {
-                throw;
-            }
+            await _messageRepo.SaveAllAsync();
         }
     }
 }

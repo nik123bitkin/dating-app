@@ -7,5 +7,10 @@ namespace AppCore.Exceptions
         public ForbiddenActionException()
         {
         }
+
+        public ForbiddenActionException(string message)
+            : base(message)
+        {
+        }
     }
 }

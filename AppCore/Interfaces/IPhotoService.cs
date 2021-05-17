@@ -5,12 +5,12 @@ namespace AppCore.Interfaces
 {
     public interface IPhotoService
     {
-        Task<PhotoForReturnDto> GetPhoto(int id);
+        Task<PhotoForReturnDto> GetPhotoAsync(int id);
 
-        Task<PhotoForReturnDto> AddForUser(int userId, PhotoForCreationDto photoForCreationDto);
+        Task<PhotoForReturnDto> AddForUserAsync(int userId, PhotoForCreationDto photoForCreationDto);
 
-        Task DeleteForUser(int userId, int id);
+        Task DeleteForUserAsync(int userId, int id);
 
-        Task SetAsMain(int userId, int id);
+        Task SetAsMainAsync(int userId, int id);
     }
 }

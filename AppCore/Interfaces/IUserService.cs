@@ -8,14 +8,14 @@ namespace AppCore.Interfaces
 {
     public interface IUserService
     {
-        Task<(PagedList<User>, IEnumerable<UserForListDto>)> GetUsers(int id, UserParams userParams);
+        Task<(PagedList<User>, IEnumerable<UserForListDto>)> GetUsersAsync(int id, UserParams userParams);
 
-        Task UpdateUser(int id, UserForUpdateDto userForUpdateDto);
+        Task UpdateUserAsync(int id, UserForUpdateDto userForUpdateDto);
 
-        Task LikeUser(int id, int recipientId);
+        Task LikeUserAsync(int id, int recipientId);
 
-        Task<UserForDetailedDTO> GetUser(int id);
+        Task<UserForDetailedDto> GetUserAsync(int id);
 
-        Task LogActivity(int id);
+        Task LogActivityAsync(int id);
     }
 }

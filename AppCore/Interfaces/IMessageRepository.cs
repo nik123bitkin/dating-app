@@ -7,8 +7,8 @@ namespace AppCore.Interfaces
 {
     public interface IMessageRepository : IDataRepository<Message>
     {
-        Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams);
+        Task<PagedList<Message>> GetMessagesForUserAsync(MessageParams messageParams);
 
-        Task<IEnumerable<Message>> GetMessageThread(int userId, int recipientId);
+        Task<IEnumerable<Message>> GetMessageThreadAsync(int userId, int recipientId);
     }
 }

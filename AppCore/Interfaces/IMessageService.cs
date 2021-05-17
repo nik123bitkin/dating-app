@@ -8,16 +8,16 @@ namespace AppCore.Interfaces
 {
     public interface IMessageService
     {
-        public Task<Message> GetMessage(int userId, int id);
+        public Task<Message> GetMessageAsync(int id);
 
-        public Task<MessageToReturnDto> CreateMessage(int userId, MessageForCreationDto messageForCreationDto);
+        public Task<MessageToReturnDto> CreateMessageAsync(MessageForCreationDto messageForCreationDto);
 
-        public Task<(IEnumerable<MessageToReturnDto>, PagedList<Message>)> GetMessagesForUser(int userId, MessageParams messageParams);
+        public Task<(IEnumerable<MessageToReturnDto>, PagedList<Message>)> GetMessagesForUserAsync(MessageParams messageParams);
 
-        public Task<IEnumerable<MessageToReturnDto>> GetMessageThread(int userId, int recipientId);
+        public Task<IEnumerable<MessageToReturnDto>> GetMessageThreadAsync(int userId, int recipientId);
 
-        public Task DeleteMessage(int id, int userId);
+        public Task DeleteMessageAsync(int id, int userId);
 
-        public Task MarkMessageAsRead(int userId, int id);
+        public Task MarkMessageAsReadAsync(int userId, int id);
     }
 }

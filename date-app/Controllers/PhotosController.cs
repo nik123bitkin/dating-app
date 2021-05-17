@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Threading.Tasks;
 using AppCore.DTOs;
-using AppCore.Exceptions;
 using AppCore.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +22,7 @@ namespace date_app.Controllers
         [HttpGet("{id}", Name = "GetPhoto")]
         public async Task<IActionResult> GetPhoto(int id)
         {
-            var photo = await _photoService.GetPhoto(id);
+            var photo = await _photoService.GetPhotoAsync(id);
 
             return Ok(photo);
         }
@@ -36,15 +35,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                var photo = await _photoService.AddForUser(userId, photoForCreationDto);
-                return CreatedAtRoute("GetPhoto", new { userId, id = photo.Id }, photo);
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            var photo = await _photoService.AddForUserAsync(userId, photoForCreationDto);
+            return CreatedAtRoute("GetPhoto", new { userId, id = photo.Id }, photo);
         }
 
         [HttpPost("{id}/setMain")]
@@ -55,23 +47,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                await _photoService.SetAsMain(userId, id);
-                return NoContent();
-            }
-            catch (NotFoundException)
-            {
-                return NotFound($"Photo with id {id} doesn't exist");
-            }
-            catch (AlreadyExistsException)
-            {
-                return Ok("This is a main photo already");
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            await _photoService.SetAsMainAsync(userId, id);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
@@ -82,23 +59,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                await _photoService.DeleteForUser(userId, id);
-                return Ok();
-            }
-            catch (NotFoundException)
-            {
-                return NotFound($"Photo with id {id} doesn't exist");
-            }
-            catch (ForbiddenActionException)
-            {
-                return Forbid("You cannot delete your main photo");
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            await _photoService.DeleteForUserAsync(userId, id);
+            return Ok();
         }
     }
 }

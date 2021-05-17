@@ -7,5 +7,10 @@ namespace AppCore.Exceptions
         public AlreadyExistsException()
         {
         }
+
+        public AlreadyExistsException(string message)
+            : base(message)
+        {
+        }
     }
 }

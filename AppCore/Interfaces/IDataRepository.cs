@@ -9,8 +9,8 @@ namespace AppCore.Interfaces
 
         void Delete(T entity);
 
-        Task<T> GetById(object id);
+        Task<T> GetByIdAsync(object id);
 
-        Task<bool> SaveAll();
+        Task<bool> SaveAllAsync();
     }
 }

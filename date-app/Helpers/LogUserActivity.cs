@@ -15,7 +15,7 @@ namespace date_app.Helpers
 
             var userService = resultContext.HttpContext.RequestServices.GetService<IUserService>();
 
-            await userService.LogActivity(userId);
+            await userService.LogActivityAsync(userId);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AppCore.DTOs;
-using AppCore.Exceptions;
 using AppCore.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,37 +19,15 @@ namespace date_app.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserForRegisterDto userForRegisterDto)
         {
-            try
-            {
-                var user = await _authService.Register(userForRegisterDto);
-                return CreatedAtRoute("GetUser", new { controller = "Users", id = user.Id }, user);
-            }
-            catch (AlreadyExistsException)
-            {
-                return Ok("Username already exists");
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            var user = await _authService.RegisterAsync(userForRegisterDto);
+            return CreatedAtRoute("GetUser", new { controller = "Users", id = user.Id }, user);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
-            try
-            {
-                var result = await _authService.Login(userForLoginDto);
-                return Ok(result);
-            }
-            catch (NotFoundException)
-            {
-                return Unauthorized("User not found");
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            var result = await _authService.LoginAsync(userForLoginDto);
+            return Ok(result);
         }
     }
 }

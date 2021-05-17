@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AppCore.DTOs;
 using AppCore.Entities;
-using AppCore.Exceptions;
 using AppCore.HelperEntities;
 using AppCore.Interfaces;
 using date_app.Helpers;
@@ -33,19 +32,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                var message = await _messageService.GetMessage(userId, id);
-                return Ok(message);
-            }
-            catch (NotFoundException)
-            {
-                return NotFound();
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            var message = await _messageService.GetMessageAsync(id);
+            return Ok(message);
         }
 
         [HttpPost]
@@ -56,19 +44,9 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                var message = await _messageService.CreateMessage(userId, messageForCreationDto);
-                return CreatedAtRoute("GetMessage", new { userId, id = message.Id }, message);
-            }
-            catch (NotFoundException)
-            {
-                return NotFound("User not found.");
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            messageForCreationDto.SenderId = userId;
+            var message = await _messageService.CreateMessageAsync(messageForCreationDto);
+            return CreatedAtRoute("GetMessage", new { userId, id = message.Id }, message);
         }
 
         [HttpGet]
@@ -79,19 +57,13 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                (IEnumerable<MessageToReturnDto> messages, PagedList<Message> messagesFromRepo)
-                    = await _messageService.GetMessagesForUser(userId, messageParams);
+            messageParams.UserId = userId;
+            (IEnumerable<MessageToReturnDto> messages, PagedList<Message> messagesFromRepo)
+                = await _messageService.GetMessagesForUserAsync(messageParams);
 
-                var pagination = new Pagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
-                var paginatedResponse = new PaginatedResponse<MessageToReturnDto>(messages, pagination);
-                return Ok(paginatedResponse);
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            var pagination = new Pagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
+            var paginatedResponse = new PaginatedResponse<MessageToReturnDto>(messages, pagination);
+            return Ok(paginatedResponse);
         }
 
         [HttpGet("thread/{recipientId}")]
@@ -102,15 +74,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                var thread = await _messageService.GetMessageThread(userId, recipientId);
-                return Ok(thread);
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            var thread = await _messageService.GetMessageThreadAsync(userId, recipientId);
+            return Ok(thread);
         }
 
         [HttpPost("{id}")]
@@ -121,15 +86,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                await _messageService.DeleteMessage(id, userId);
-                return NoContent();
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            await _messageService.DeleteMessageAsync(id, userId);
+            return NoContent();
         }
 
         [HttpPost("{id}/read")]
@@ -140,19 +98,8 @@ namespace date_app.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                await _messageService.MarkMessageAsRead(userId, id);
-                return NoContent();
-            }
-            catch (NotFoundException)
-            {
-                return NotFound("Failed to make message as read. Invalid recipient.");
-            }
-            catch
-            {
-                return Problem("Internal server error.");
-            }
+            await _messageService.MarkMessageAsReadAsync(userId, id);
+            return NoContent();
         }
     }
 }

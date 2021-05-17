@@ -1,13 +1,12 @@
 ﻿using AppCore.DTOs;
 using AppCore.Entities;
-using CloudinaryDotNet.Actions;
 
 namespace AppCore.Interfaces
 {
     public interface ICloudinaryService
     {
-        ImageUploadResult UploadImage(PhotoForCreationDto photoForCreationDto);
+        void UploadImage(PhotoForCreationDto photoForCreationDto);
 
-        DeletionResult DeleteImage(Photo photoForDelete);
+        void DeleteImage(Photo photoForDelete);
     }
 }

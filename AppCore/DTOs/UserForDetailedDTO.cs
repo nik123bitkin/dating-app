@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AppCore.DTOs
 {
-    public class UserForDetailedDTO
+    public class UserForDetailedDto
     {
         public int Id { get; set; }
 

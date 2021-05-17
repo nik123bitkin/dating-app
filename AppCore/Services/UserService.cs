@@ -23,9 +23,9 @@ namespace AppCore.Services
             _likeRepo = likeRepo;
         }
 
-        public async Task<(PagedList<User>, IEnumerable<UserForListDto>)> GetUsers(int id, UserParams userParams)
+        public async Task<(PagedList<User>, IEnumerable<UserForListDto>)> GetUsersAsync(int id, UserParams userParams)
         {
-            var userFromRepo = await _userRepo.GetUser(id);
+            var userFromRepo = await _userRepo.GetByIdAsync(id);
 
             userParams.UserId = id;
 
@@ -34,48 +34,42 @@ namespace AppCore.Services
                 userParams.Gender = userFromRepo.Gender == "male" ? "female" : "male";
             }
 
-            var users = await _userRepo.GetUsers(userParams);
+            var users = await _userRepo.GetUsersAsync(userParams);
 
             var usersToReturn = _mapper.Map<IEnumerable<UserForListDto>>(users);
 
             return (users, usersToReturn);
         }
 
-        public async Task UpdateUser(int id, UserForUpdateDto userForUpdateDto)
+        public async Task UpdateUserAsync(int id, UserForUpdateDto userForUpdateDto)
         {
-            var userFromRepo = await _userRepo.GetUser(id);
+            var userFromRepo = await _userRepo.GetByIdAsync(id);
 
             _mapper.Map(userForUpdateDto, userFromRepo);
 
-            try
-            {
-                await _userRepo.SaveAll();
-            }
-            catch
-            {
-                throw;
-            }
+            await _userRepo.SaveAllAsync();
         }
 
-        public async Task<UserForDetailedDTO> GetUser(int id)
+        public async Task<UserForDetailedDto> GetUserAsync(int id)
         {
-            var user = await _userRepo.GetUser(id);
+            var user = await _userRepo.GetUserAsync(id);
 
-            var userToReturn = _mapper.Map<UserForDetailedDTO>(user);
+            var userToReturn = _mapper.Map<UserForDetailedDto>(user);
 
             return userToReturn;
         }
 
-        public async Task LikeUser(int id, int recipientId)
+        public async Task LikeUserAsync(int id, int recipientId)
         {
-            var like = await _userRepo.GetLike(id, recipientId);
+            var like = await _userRepo.GetLikeAsync(id, recipientId);
 
             if (like != null)
             {
                 throw new AlreadyExistsException();
             }
 
-            if (await _userRepo.GetUser(recipientId) == null)
+            var user = await _userRepo.GetByIdAsync(recipientId);
+            if (user == null)
             {
                 throw new NotFoundException();
             }
@@ -88,23 +82,16 @@ namespace AppCore.Services
 
             _likeRepo.Add(like);
 
-            try
-            {
-                await _userRepo.SaveAll();
-            }
-            catch
-            {
-                throw;
-            }
+            await _userRepo.SaveAllAsync();
         }
 
-        public async Task LogActivity(int id)
+        public async Task LogActivityAsync(int id)
         {
-            var user = await _userRepo.GetUser(id);
+            var user = await _userRepo.GetByIdAsync(id);
 
             user.LastActive = DateTime.Now;
 
-            await _userRepo.SaveAll();
+            await _userRepo.SaveAllAsync();
         }
     }
 }
